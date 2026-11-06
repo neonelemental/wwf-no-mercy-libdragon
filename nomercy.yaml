@@ -1,5 +1,5 @@
-# splat config: splits baserom.z64 into build/split/. Main is assembly and
-# data; the overlays and the files stay binary.
+# splat config: splits baserom.z64 into build/split/. Main and the overlays
+# are assembly and data; the files stay binary.
 name: WWF No Mercy (USA) (Rev 1)
 sha1: 91cee3d096f4a76644d8b35b9aead6448909abd1
 options:
@@ -64,26 +64,78 @@ segments:
     type: bin
     start: 0x57270
     vram: 0x8038F760
+    exclusive_ram_id: main_tail
 
+  # The overlays share one id, so none sees the symbols of another. ovl_a stays
+  # in RAM beside ovl_b, ovl_c or ovl_d, so each of them sees ovl_a. ovl_e spans
+  # both slots.
   - name: ovl_a
-    type: bin
+    type: code
     start: 0x57310
+    vram: 0x800D9960
+    exclusive_ram_id: ovl
+    symbol_name_format: $VRAM_$SEG
+    symbol_name_format_no_rom: $VRAM_$SEG
+    bss_size: 0x2F00
+    subsegments:
+      - [0x57310, asm, ovl_a]
+      - [0x702F0, data, ovl_a_data]
+      - { start: 0x81210, type: bss, vram: 0x80103860, name: ovl_a_bss }
 
   - name: ovl_b
-    type: bin
+    type: code
     start: 0x81210
+    vram: 0x80106760
+    exclusive_ram_id: ovl
+    symbol_name_format: $VRAM_$SEG
+    symbol_name_format_no_rom: $VRAM_$SEG
+    prioritized_segments: [ovl_a]
+    bss_size: 0x394F0
+    subsegments:
+      - [0x81210, asm, ovl_b]
+      - [0x99680, data, ovl_b_data]
+      - { start: 0xAE390, type: bss, vram: 0x801338E0, name: ovl_b_bss }
 
   - name: ovl_c
-    type: bin
+    type: code
     start: 0xAE390
+    vram: 0x80106760
+    exclusive_ram_id: ovl
+    symbol_name_format: $VRAM_$SEG
+    symbol_name_format_no_rom: $VRAM_$SEG
+    prioritized_segments: [ovl_a]
+    bss_size: 0x63E0
+    subsegments:
+      - [0xAE390, asm, ovl_c]
+      - [0xEFB10, data, ovl_c_data]
+      - { start: 0xFD250, type: bss, vram: 0x80155620, name: ovl_c_bss }
 
   - name: ovl_d
-    type: bin
+    type: code
     start: 0xFD250
+    vram: 0x80106760
+    exclusive_ram_id: ovl
+    symbol_name_format: $VRAM_$SEG
+    symbol_name_format_no_rom: $VRAM_$SEG
+    prioritized_segments: [ovl_a]
+    bss_size: 0x1F940
+    subsegments:
+      - [0xFD250, asm, ovl_d]
+      - [0x13DBA0, data, ovl_d_data]
+      - { start: 0x144BE0, type: bss, vram: 0x8014E0F0, name: ovl_d_bss }
 
   - name: ovl_e
-    type: bin
+    type: code
     start: 0x144BE0
+    vram: 0x800D9960
+    exclusive_ram_id: ovl
+    symbol_name_format: $VRAM_$SEG
+    symbol_name_format_no_rom: $VRAM_$SEG
+    bss_size: 0x19B20
+    subsegments:
+      - [0x144BE0, asm, ovl_e]
+      - [0x1AF8F0, data, ovl_e_data]
+      - { start: 0x1BD150, type: bss, vram: 0x80151ED0, name: ovl_e_bss }
 
   - name: files
     type: bin

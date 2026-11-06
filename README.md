@@ -4,8 +4,7 @@ WWF No Mercy for the Nintendo 64, built from its disassembly and moved from
 libultra to [libdragon](https://github.com/n64brew/libdragon).
 
 The build splits the main code and data of the game into assembly and links
-it back into the retail image. The overlays and the game files stay binary
-for now.
+it back into the retail image. The game files stay binary for now.
 
 ## Building
 
