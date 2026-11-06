@@ -38,7 +38,8 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 `symbol_addrs.txt` names each routine of the main code. `tests/hello` is a
 ROM that prints `hello from libdragon`. `tests/boot` starts libdragon from the
 IPL3 of `baserom.z64`, with libdragon built at o32; it runs nine threads and
-prints what they count. Run each on a console with a flashcart, or in an
+prints what they count. `tests/kernel` runs libultra's thread, queue and event
+calls on libdragon's kernel and prints its counts. Run each on a console with a flashcart, or in an
 accurate emulator such as [ares](https://ares-emu.net).
 
 This repository contains no game data. Everything the split writes stays in
