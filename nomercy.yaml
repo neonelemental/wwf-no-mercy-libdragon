@@ -21,9 +21,23 @@ options:
   undefined_syms_auto_path: build/split/undefined_syms_auto.txt
   symbol_addrs_path:
     - symbol_addrs.txt
+    - extra_addrs.txt
+  reloc_addrs_path:
+    - reloc_addrs.txt
 
-  section_order: [.text, .data, .bss]
+  # Each data part is rodata, as spimdisasm gives the words of a jump table
+  # their labels only there. It guesses no strings, as its guesses of
+  # EUC-JP strings do not give back the bytes.
+  section_order: [.text, .data, .rodata, .bss]
+  rodata_string_guesser_level: 0
   ld_bss_is_noload: True
+  ld_use_symbolic_vram_addresses: True
+
+# Slot 1 starts after the audio region, and slot 2 after ovl_a, so a pad
+# before them moves them.
+vram_classes:
+  - { name: slot1, vram: 0x800D9960, vram_symbol: audio_VRAM_END }
+  - { name: slot2, vram: 0x80106760, vram_symbol: ovl_a_VRAM_END }
 
 segments:
   - name: header
@@ -48,17 +62,25 @@ segments:
     bss_size: 0x672F0
     subsegments:
       - [0x1050, asm, main]
-      - [0x40F80, data, main_data]
-      - [0x41050, data, rsp_audio_text]
-      - [0x41CB0, data, rsp_f3dex2_text]
-      - [0x43050, data, rsp_f3dlx2_text]
-      - [0x44230, data, game_id]
-      - [0x44270, data, tables]
-      - [0x55920, data, rsp_audio_data]
-      - [0x55BD0, data, rsp_f3dex2_data]
-      - [0x55FF0, data, rsp_f3dlx2_data]
-      - [0x56410, data, tables_56410]
+      - [0x40F80, rodata, main_data]
+      - [0x41050, rodata, rsp_audio_text]
+      - [0x41CB0, rodata, rsp_f3dex2_text]
+      - [0x43050, rodata, rsp_f3dlx2_text]
+      - [0x44230, rodata, game_id]
+      - [0x44270, rodata, tables]
+      - [0x55920, rodata, rsp_audio_data]
+      - [0x55BD0, rodata, rsp_f3dex2_data]
+      - [0x55FF0, rodata, rsp_f3dlx2_data]
+      - [0x56410, rodata, tables_56410]
       - { start: 0x57270, type: bss, vram: 0x80056670, name: main_bss }
+
+  # The audio thread's region, from the end of main bss to slot 1.
+  - name: audio
+    type: bss
+    start: 0x57270
+    vram: 0x800BD960
+    follows_vram: main
+    bss_size: 0x1C000
 
   - name: main_tail
     type: bin
@@ -72,20 +94,20 @@ segments:
   - name: ovl_a
     type: code
     start: 0x57310
-    vram: 0x800D9960
+    vram_class: slot1
     exclusive_ram_id: ovl
     symbol_name_format: $VRAM_$SEG
     symbol_name_format_no_rom: $VRAM_$SEG
     bss_size: 0x2F00
     subsegments:
       - [0x57310, asm, ovl_a]
-      - [0x702F0, data, ovl_a_data]
+      - [0x702F0, rodata, ovl_a_data]
       - { start: 0x81210, type: bss, vram: 0x80103860, name: ovl_a_bss }
 
   - name: ovl_b
     type: code
     start: 0x81210
-    vram: 0x80106760
+    vram_class: slot2
     exclusive_ram_id: ovl
     symbol_name_format: $VRAM_$SEG
     symbol_name_format_no_rom: $VRAM_$SEG
@@ -93,13 +115,13 @@ segments:
     bss_size: 0x394F0
     subsegments:
       - [0x81210, asm, ovl_b]
-      - [0x99680, data, ovl_b_data]
+      - [0x99680, rodata, ovl_b_data]
       - { start: 0xAE390, type: bss, vram: 0x801338E0, name: ovl_b_bss }
 
   - name: ovl_c
     type: code
     start: 0xAE390
-    vram: 0x80106760
+    vram_class: slot2
     exclusive_ram_id: ovl
     symbol_name_format: $VRAM_$SEG
     symbol_name_format_no_rom: $VRAM_$SEG
@@ -107,13 +129,13 @@ segments:
     bss_size: 0x63E0
     subsegments:
       - [0xAE390, asm, ovl_c]
-      - [0xEFB10, data, ovl_c_data]
+      - [0xEFB10, rodata, ovl_c_data]
       - { start: 0xFD250, type: bss, vram: 0x80155620, name: ovl_c_bss }
 
   - name: ovl_d
     type: code
     start: 0xFD250
-    vram: 0x80106760
+    vram_class: slot2
     exclusive_ram_id: ovl
     symbol_name_format: $VRAM_$SEG
     symbol_name_format_no_rom: $VRAM_$SEG
@@ -121,20 +143,20 @@ segments:
     bss_size: 0x1F940
     subsegments:
       - [0xFD250, asm, ovl_d]
-      - [0x13DBA0, data, ovl_d_data]
+      - [0x13DBA0, rodata, ovl_d_data]
       - { start: 0x144BE0, type: bss, vram: 0x8014E0F0, name: ovl_d_bss }
 
   - name: ovl_e
     type: code
     start: 0x144BE0
-    vram: 0x800D9960
+    vram_class: slot1
     exclusive_ram_id: ovl
     symbol_name_format: $VRAM_$SEG
     symbol_name_format_no_rom: $VRAM_$SEG
     bss_size: 0x19B20
     subsegments:
       - [0x144BE0, asm, ovl_e]
-      - [0x1AF8F0, data, ovl_e_data]
+      - [0x1AF8F0, rodata, ovl_e_data]
       - { start: 0x1BD150, type: bss, vram: 0x80151ED0, name: ovl_e_bss }
 
   - name: files

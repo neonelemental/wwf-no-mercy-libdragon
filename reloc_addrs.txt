@@ -1,0 +1,1383 @@
+// Each word of the split that holds an address, with its symbol, so that it moves with the
+// code. MIPS_NONE gives a word that is no address.
+rom:0x1000 reloc:MIPS_HI16 symbol:main_BSS_START
+rom:0x1004 reloc:MIPS_LO16 symbol:main_BSS_START
+rom:0x1008 reloc:MIPS_HI16 symbol:main_BSS_SIZE
+rom:0x100C reloc:MIPS_LO16 symbol:main_BSS_SIZE
+rom:0x13F8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x1F68 reloc:MIPS_HI16 symbol:main_tail_ROM_END
+rom:0x1F6C reloc:MIPS_LO16 symbol:main_tail_ROM_END
+rom:0x1F70 reloc:MIPS_HI16 symbol:main_tail_ROM_START
+rom:0x1F74 reloc:MIPS_LO16 symbol:main_tail_ROM_START
+rom:0x3850 reloc:MIPS_NONE symbol:none // no rom
+rom:0x3970 reloc:MIPS_NONE symbol:none // no rom
+rom:0x4028 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x1539DC0
+rom:0x402C reloc:MIPS_LO16 symbol:files_ROM_START addend:0x1539DC0
+rom:0x4034 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x1536150
+rom:0x4038 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x1536150
+rom:0x4064 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x16A1C60
+rom:0x4068 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x16A1C60
+rom:0x406C reloc:MIPS_HI16 symbol:files_ROM_START addend:0x169AEE0
+rom:0x4070 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x169AEE0
+rom:0x4098 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x169AEE0
+rom:0x409C reloc:MIPS_LO16 symbol:files_ROM_START addend:0x169AEE0
+rom:0x40A0 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x1698E40
+rom:0x40A4 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x1698E40
+rom:0x40CC reloc:MIPS_HI16 symbol:files_ROM_START addend:0x17AC730
+rom:0x40D0 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x17AC730
+rom:0x40D4 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x17AA2C0
+rom:0x40D8 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x17AA2C0
+rom:0x4100 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x17AA2C0
+rom:0x4104 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x17AA2C0
+rom:0x4108 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x17A8B00
+rom:0x410C reloc:MIPS_LO16 symbol:files_ROM_START addend:0x17A8B00
+rom:0x4178 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x1539DC0
+rom:0x417C reloc:MIPS_LO16 symbol:files_ROM_START addend:0x1539DC0
+rom:0x41DC reloc:MIPS_HI16 symbol:files_ROM_START addend:0x16A1C60
+rom:0x41E4 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x16A1C60
+rom:0x4210 reloc:MIPS_HI16 symbol:files_ROM_START addend:0x17AC730
+rom:0x4218 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x17AC730
+rom:0x46DC reloc:MIPS_HI16 symbol:files_ROM_START addend:0x1506088
+rom:0x46E0 reloc:MIPS_LO16 symbol:files_ROM_START addend:0x1506088
+rom:0x472C reloc:MIPS_HI16 symbol:files_ROM_START
+rom:0x4730 reloc:MIPS_LO16 symbol:files_ROM_START
+rom:0x484C reloc:MIPS_HI16 symbol:files_ROM_START
+rom:0x4850 reloc:MIPS_LO16 symbol:files_ROM_START
+rom:0xA300 reloc:MIPS_NONE symbol:none // no rom
+rom:0xABD0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xB7D4 reloc:MIPS_HI16 symbol:D_80104D28_ovl_a
+rom:0xB7D8 reloc:MIPS_LO16 symbol:D_80104D28_ovl_a
+rom:0xB7FC reloc:MIPS_HI16 symbol:D_80106520_ovl_a
+rom:0xB800 reloc:MIPS_LO16 symbol:D_80106520_ovl_a
+rom:0xB80C reloc:MIPS_HI16 symbol:D_80104D28_ovl_a
+rom:0xB810 reloc:MIPS_LO16 symbol:D_80104D28_ovl_a
+rom:0xB814 reloc:MIPS_HI16 symbol:D_80106520_ovl_a
+rom:0xB818 reloc:MIPS_LO16 symbol:D_80106520_ovl_a
+rom:0xB830 reloc:MIPS_HI16 symbol:D_80106520_ovl_a
+rom:0xB834 reloc:MIPS_LO16 symbol:D_80106520_ovl_a
+rom:0xB850 reloc:MIPS_HI16 symbol:D_8010665C_ovl_a
+rom:0xB854 reloc:MIPS_LO16 symbol:D_8010665C_ovl_a
+rom:0xB880 reloc:MIPS_HI16 symbol:D_80104D28_ovl_a
+rom:0xB884 reloc:MIPS_LO16 symbol:D_80104D28_ovl_a
+rom:0xB8A4 reloc:MIPS_HI16 symbol:D_8010665C_ovl_a
+rom:0xB8A8 reloc:MIPS_LO16 symbol:D_8010665C_ovl_a
+rom:0xB8EC reloc:MIPS_HI16 symbol:D_8010665C_ovl_a
+rom:0xB8F0 reloc:MIPS_LO16 symbol:D_8010665C_ovl_a
+rom:0xB918 reloc:MIPS_HI16 symbol:D_8010665C_ovl_a
+rom:0xB91C reloc:MIPS_LO16 symbol:D_8010665C_ovl_a
+rom:0xB944 reloc:MIPS_HI16 symbol:D_80105818_ovl_a
+rom:0xB948 reloc:MIPS_LO16 symbol:D_80105818_ovl_a
+rom:0xB954 reloc:MIPS_HI16 symbol:D_80105818_ovl_a
+rom:0xB958 reloc:MIPS_LO16 symbol:D_80105818_ovl_a
+rom:0xB968 reloc:MIPS_HI16 symbol:D_80105818_ovl_a
+rom:0xB96C reloc:MIPS_LO16 symbol:D_80105818_ovl_a
+rom:0xFAF4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x10AD0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x14F34 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x1B2AC reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x1B3B0 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x1BAFC reloc:MIPS_NONE symbol:none // no rom
+rom:0x1F7E8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x23EA0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x24438 reloc:MIPS_NONE symbol:none // no rom
+rom:0x24494 reloc:MIPS_NONE symbol:none // no rom
+rom:0x246E0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x24944 reloc:MIPS_NONE symbol:none // no rom
+rom:0x24A28 reloc:MIPS_NONE symbol:none // no rom
+rom:0x2BCF0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x2BD4C reloc:MIPS_NONE symbol:none // no rom
+rom:0x2D58C reloc:MIPS_NONE symbol:none // no rom
+rom:0x2D780 reloc:MIPS_NONE symbol:none // no rom
+rom:0x2D92C reloc:MIPS_NONE symbol:none // no rom
+rom:0x2DBE0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x2DCA8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x2DDB4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x2E48C reloc:MIPS_NONE symbol:none // no rom
+rom:0x2E7F0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x30B7C reloc:MIPS_NONE symbol:none // no rom
+rom:0x30B88 reloc:MIPS_NONE symbol:none // no rom
+rom:0x31D6C reloc:MIPS_NONE symbol:none // no rom
+rom:0x31F5C reloc:MIPS_NONE symbol:none // no rom
+rom:0x32108 reloc:MIPS_NONE symbol:none // no rom
+rom:0x32350 reloc:MIPS_NONE symbol:none // no rom
+rom:0x324B0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x337DC reloc:MIPS_NONE symbol:none // no rom
+rom:0x353DC reloc:MIPS_NONE symbol:none // no rom
+rom:0x35418 reloc:MIPS_NONE symbol:none // no rom
+rom:0x38148 reloc:MIPS_NONE symbol:none // no rom
+rom:0x39948 reloc:MIPS_NONE symbol:none // no rom
+rom:0x39BA8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x3D09C reloc:MIPS_NONE symbol:none // no rom
+rom:0x40DCC reloc:MIPS_NONE symbol:none // no rom
+rom:0x40F44 reloc:MIPS_NONE symbol:none // no rom
+rom:0x48A84 reloc:MIPS_32 symbol:D_8004795C
+rom:0x48A88 reloc:MIPS_32 symbol:D_800479FC
+rom:0x48A8C reloc:MIPS_32 symbol:D_80047AA0
+rom:0x539A0 reloc:MIPS_32 symbol:ovl_a_ROM_START
+rom:0x539A4 reloc:MIPS_32 symbol:ovl_a_ROM_END
+rom:0x539A8 reloc:MIPS_32 symbol:ovl_a_VRAM
+rom:0x539AC reloc:MIPS_32 symbol:ovl_a_TEXT_START
+rom:0x539B0 reloc:MIPS_32 symbol:ovl_a_TEXT_END
+rom:0x539B4 reloc:MIPS_32 symbol:ovl_a_DATA_START
+rom:0x539B8 reloc:MIPS_32 symbol:ovl_a_RODATA_END
+rom:0x539BC reloc:MIPS_32 symbol:ovl_a_BSS_START
+rom:0x539C0 reloc:MIPS_32 symbol:ovl_a_BSS_END
+rom:0x539C4 reloc:MIPS_32 symbol:ovl_b_ROM_START
+rom:0x539C8 reloc:MIPS_32 symbol:ovl_b_ROM_END
+rom:0x539CC reloc:MIPS_32 symbol:ovl_b_VRAM
+rom:0x539D0 reloc:MIPS_32 symbol:ovl_b_TEXT_START
+rom:0x539D4 reloc:MIPS_32 symbol:ovl_b_TEXT_END
+rom:0x539D8 reloc:MIPS_32 symbol:ovl_b_DATA_START
+rom:0x539DC reloc:MIPS_32 symbol:ovl_b_RODATA_END
+rom:0x539E0 reloc:MIPS_32 symbol:ovl_b_BSS_START
+rom:0x539E4 reloc:MIPS_32 symbol:ovl_b_BSS_END
+rom:0x539E8 reloc:MIPS_32 symbol:ovl_c_ROM_START
+rom:0x539EC reloc:MIPS_32 symbol:ovl_c_ROM_END
+rom:0x539F0 reloc:MIPS_32 symbol:ovl_c_VRAM
+rom:0x539F4 reloc:MIPS_32 symbol:ovl_c_TEXT_START
+rom:0x539F8 reloc:MIPS_32 symbol:ovl_c_TEXT_END
+rom:0x539FC reloc:MIPS_32 symbol:ovl_c_DATA_START
+rom:0x53A00 reloc:MIPS_32 symbol:ovl_c_RODATA_END
+rom:0x53A04 reloc:MIPS_32 symbol:ovl_c_BSS_START
+rom:0x53A08 reloc:MIPS_32 symbol:ovl_c_BSS_END
+rom:0x53A0C reloc:MIPS_32 symbol:ovl_e_ROM_START
+rom:0x53A10 reloc:MIPS_32 symbol:ovl_e_ROM_END
+rom:0x53A14 reloc:MIPS_32 symbol:ovl_e_VRAM
+rom:0x53A18 reloc:MIPS_32 symbol:ovl_e_TEXT_START
+rom:0x53A1C reloc:MIPS_32 symbol:ovl_e_TEXT_END
+rom:0x53A20 reloc:MIPS_32 symbol:ovl_e_DATA_START
+rom:0x53A24 reloc:MIPS_32 symbol:ovl_e_RODATA_END
+rom:0x53A28 reloc:MIPS_32 symbol:ovl_e_BSS_START
+rom:0x53A2C reloc:MIPS_32 symbol:ovl_e_BSS_END
+rom:0x53A30 reloc:MIPS_32 symbol:ovl_d_ROM_START
+rom:0x53A34 reloc:MIPS_32 symbol:ovl_d_ROM_END
+rom:0x53A38 reloc:MIPS_32 symbol:ovl_d_VRAM
+rom:0x53A3C reloc:MIPS_32 symbol:ovl_d_TEXT_START
+rom:0x53A40 reloc:MIPS_32 symbol:ovl_d_TEXT_END
+rom:0x53A44 reloc:MIPS_32 symbol:ovl_d_DATA_START
+rom:0x53A48 reloc:MIPS_32 symbol:ovl_d_RODATA_END
+rom:0x53A4C reloc:MIPS_32 symbol:ovl_d_BSS_START
+rom:0x53A50 reloc:MIPS_32 symbol:ovl_d_BSS_END
+rom:0x5BC1C reloc:MIPS_NONE symbol:none // no rom
+rom:0x5BC74 reloc:MIPS_NONE symbol:none // no rom
+rom:0x5E7E8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x5E9E0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x61D94 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x61DDC reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x62370 reloc:MIPS_HI16 symbol:D_800457B0
+rom:0x62374 reloc:MIPS_LO16 symbol:D_800457B0
+rom:0x623C4 reloc:MIPS_HI16 symbol:D_800457B4
+rom:0x623C8 reloc:MIPS_LO16 symbol:D_800457B4
+rom:0x623E4 reloc:MIPS_HI16 symbol:D_800457B0
+rom:0x623E8 reloc:MIPS_LO16 symbol:D_800457B0
+rom:0x62470 reloc:MIPS_HI16 symbol:D_800457B0
+rom:0x62474 reloc:MIPS_LO16 symbol:D_800457B0
+rom:0x62488 reloc:MIPS_HI16 symbol:D_800457B0
+rom:0x62490 reloc:MIPS_LO16 symbol:D_800457B0
+rom:0x627CC reloc:MIPS_HI16 symbol:D_800457B4
+rom:0x627D0 reloc:MIPS_LO16 symbol:D_800457B4
+rom:0x627FC reloc:MIPS_HI16 symbol:D_800457B4
+rom:0x62804 reloc:MIPS_LO16 symbol:D_800457B4
+rom:0x628B0 reloc:MIPS_HI16 symbol:D_800457B4
+rom:0x628B4 reloc:MIPS_LO16 symbol:D_800457B4
+rom:0x628EC reloc:MIPS_HI16 symbol:D_800457B4
+rom:0x628F0 reloc:MIPS_LO16 symbol:D_800457B4
+rom:0x62C7C reloc:MIPS_HI16 symbol:D_800457B4
+rom:0x62C84 reloc:MIPS_LO16 symbol:D_800457B4
+rom:0x62D28 reloc:MIPS_HI16 symbol:D_800457B4
+rom:0x62D2C reloc:MIPS_LO16 symbol:D_800457B4
+rom:0x62D48 reloc:MIPS_HI16 symbol:D_800457B0
+rom:0x62D4C reloc:MIPS_LO16 symbol:D_800457B0
+rom:0x62D60 reloc:MIPS_HI16 symbol:D_800457B0
+rom:0x62D68 reloc:MIPS_LO16 symbol:D_800457B0
+rom:0x66960 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x66968 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x6697C reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x66984 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x66990 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x669F0 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x66A58 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x66A5C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x66A60 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x66A68 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x66AA4 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x66AC0 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x66AF0 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x66B28 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x66B3C reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x6746C reloc:MIPS_HI16 symbol:D_80105B22_ovl_a
+rom:0x67470 reloc:MIPS_LO16 symbol:D_80105B22_ovl_a
+rom:0x6760C reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x67694 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x682F0 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x68654 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x6865C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x68758 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x6875C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x689A0 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x689B8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x689BC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x689CC reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x68CA8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x68CAC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x68CC0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x68CC4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x68CDC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x68CE0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x68D64 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x68D68 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x68D90 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x68D94 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x68FF4 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69060 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x690B8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x690BC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x690F4 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69100 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69160 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69168 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x69170 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x691DC reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x691EC reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69238 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x6924C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x69254 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x69270 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69290 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69298 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0x692A0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0x6952C reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x69534 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x695E4 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x6B738 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0x6B73C reloc:MIPS_LO16 symbol:D_800457AC
+rom:0x6BAF8 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0x6BAFC reloc:MIPS_LO16 symbol:D_800457AC
+rom:0x6C224 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0x6C228 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0x6C990 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x6C9EC reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x6CA88 reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x6CA9C reloc:MIPS_NONE symbol:none // the slot holds more than one overlay
+rom:0x6D054 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0x6D058 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0x6E7C4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x765E0 reloc:MIPS_NONE symbol:none // no address
+rom:0x76624 reloc:MIPS_NONE symbol:none // no address
+rom:0x76818 reloc:MIPS_32 symbol:func_80000E78 addend:0x88
+rom:0x7983C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7986C reloc:MIPS_NONE symbol:none // two halves
+rom:0x79920 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79950 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79968 reloc:MIPS_NONE symbol:none // two halves
+rom:0x799EC reloc:MIPS_NONE symbol:none // two halves
+rom:0x79A1C reloc:MIPS_NONE symbol:none // two halves
+rom:0x79A40 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79A7C reloc:MIPS_NONE symbol:none // two halves
+rom:0x79B24 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79B48 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79B9C reloc:MIPS_NONE symbol:none // two halves
+rom:0x79C50 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79C80 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79CEC reloc:MIPS_NONE symbol:none // two halves
+rom:0x79D10 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79D40 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79D70 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79D7C reloc:MIPS_NONE symbol:none // two halves
+rom:0x79DA0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79DD0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79E18 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79EC0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79EFC reloc:MIPS_NONE symbol:none // two halves
+rom:0x79F2C reloc:MIPS_NONE symbol:none // two halves
+rom:0x79F5C reloc:MIPS_NONE symbol:none // two halves
+rom:0x79F98 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79FA4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79FC8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x79FF8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A040 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A094 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A0B8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A0E8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A124 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A190 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A1B4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A268 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A34C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A3DC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A40C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A448 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A454 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A5D4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A604 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A688 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A6B8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A6C4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A6F4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A70C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A754 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A76C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A7F0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A814 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A838 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A880 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A898 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A8E0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A910 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A928 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A970 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A988 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A9B8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7A9E8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AA24 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AA48 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AA54 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AA84 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AAA8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AACC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AAD8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AB20 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AB50 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AB5C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AB68 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ABA4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ABEC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AC1C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AC4C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AC70 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AC94 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ACC4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ACF4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AD60 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AD9C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ADF0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AE20 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AE2C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AE44 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AE50 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AE80 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AEE0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AF1C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AF4C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AF64 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7AF7C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B000 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B018 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B024 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B03C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B06C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B084 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B0CC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B0D8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B0FC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B108 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B114 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B138 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B150 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B18C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B1BC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B1D4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B1EC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B21C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B240 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B270 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B2A0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B2AC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B2B8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B2D0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B2E8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B300 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B3A8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B3E4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B42C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B438 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B444 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B45C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B480 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B498 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B4B0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B4E0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B510 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B540 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B570 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B5A0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B5D0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B630 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B660 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B66C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B678 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B6C0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B6F0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B720 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B750 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B780 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B7A4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B7C8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B810 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B87C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B8B8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B8E8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B948 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B978 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B984 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B99C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B9A8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7B9CC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BA14 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BA44 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BA74 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BA8C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BAD4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BAE0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BAEC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BB04 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BB4C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BB58 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BB64 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BB7C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BBAC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC0C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC18 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC3C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC48 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC54 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC6C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC78 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC84 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BC9C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BCCC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BCFC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BD20 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BD50 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BD68 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BD74 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BD80 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BD98 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BDC8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BDF8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BE04 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BE10 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BE28 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BE40 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BE64 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BF9C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7BFB4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C08C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C1D0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C200 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C350 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C374 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C398 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C4A0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C524 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C548 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C614 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C638 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C650 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C6A4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C6D4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C6EC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C6F8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C758 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C788 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C7B8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C8B4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C8E4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C944 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C974 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C98C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7C9A4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CB6C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CB78 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CBB4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CE30 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CEF0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CF08 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CF38 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CF50 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CF5C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CF98 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CFB0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7CFD4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D004 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D13C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D1A8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D1D8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D214 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D2BC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D310 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D328 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D418 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D448 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D454 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D478 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D49C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D52C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D538 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D58C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D5B0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D5D4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D5EC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D5F8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D64C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D688 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D6AC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D6DC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D70C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D79C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D7E4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D808 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D88C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D91C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D958 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7D9AC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DA00 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DA54 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DB14 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DB5C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DC34 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DC7C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DC88 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DCA0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DD30 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DD54 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DD9C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DDB4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DDE4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DDFC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DE08 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DE44 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DE80 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DEB0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7DF64 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E024 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E0B4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E0D8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E120 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E15C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E1EC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E2B8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E2F4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E390 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E3CC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E3FC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E444 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E450 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E480 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E4B0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E4EC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E51C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E534 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E54C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E60C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E6B4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E6CC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E700 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E744 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E75C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E790 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E7F8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E810 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E8A0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E90C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7E924 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EA20 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EA80 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EA98 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EAC8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EAD4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EB04 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EB1C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EB34 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EB40 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EB7C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EB94 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EBD0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EC78 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ECD8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ED08 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7ED38 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EDA4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EDBC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EDEC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EE1C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EE88 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EEAC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EED0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EF48 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EF78 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7EFA8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F0C8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F134 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F14C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F170 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F1A0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F2E4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F2F0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F320 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F368 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F398 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F3A4 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F3B0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F3C8 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F404 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F428 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F434 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F440 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F458 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F584 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F590 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F59C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F5FC reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F62C reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F668 reloc:MIPS_NONE symbol:none // two halves
+rom:0x7F6B0 reloc:MIPS_NONE symbol:none // two halves
+rom:0x809F4 reloc:MIPS_NONE symbol:none // no address
+rom:0x80A00 reloc:MIPS_NONE symbol:none // no address
+rom:0x80A20 reloc:MIPS_NONE symbol:none // no address
+rom:0x8C628 reloc:MIPS_NONE symbol:none // no rom
+rom:0x8CC74 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x8CC7C reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x8CC88 reloc:MIPS_NONE symbol:none // no rom
+rom:0x8DACC reloc:MIPS_NONE symbol:none // no rom
+rom:0x8E9BC reloc:MIPS_NONE symbol:none // no rom
+rom:0x8ECE8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x8EEF4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x8F444 reloc:MIPS_NONE symbol:none // no rom
+rom:0x90148 reloc:MIPS_NONE symbol:none // no rom
+rom:0x90304 reloc:MIPS_NONE symbol:none // no rom
+rom:0x9052C reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x90534 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x907B0 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x907B8 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x909BC reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x909C4 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x91B44 reloc:MIPS_NONE symbol:none // no rom
+rom:0x95D00 reloc:MIPS_NONE symbol:none // no rom
+rom:0xAAFD0 reloc:MIPS_32 symbol:D_8012ED84_ovl_b
+rom:0xAAFD4 reloc:MIPS_32 symbol:D_8012ED98_ovl_b
+rom:0xAAFEC reloc:MIPS_32 symbol:D_8012ED84_ovl_b
+rom:0xAAFF0 reloc:MIPS_32 symbol:D_8012ED98_ovl_b
+rom:0xAB008 reloc:MIPS_32 symbol:D_8012ED84_ovl_b
+rom:0xAB00C reloc:MIPS_32 symbol:D_8012ED98_ovl_b
+rom:0xAB024 reloc:MIPS_32 symbol:D_8012ED84_ovl_b
+rom:0xAB028 reloc:MIPS_32 symbol:D_8012ED98_ovl_b
+rom:0xAB064 reloc:MIPS_32 symbol:D_8012EDAC_ovl_b
+rom:0xAB068 reloc:MIPS_32 symbol:D_8012EDC0_ovl_b
+rom:0xAB078 reloc:MIPS_32 symbol:D_8012EDD4_ovl_b
+rom:0xAB0B4 reloc:MIPS_32 symbol:D_8012EDFC_ovl_b
+rom:0xAB0B8 reloc:MIPS_32 symbol:D_8012EE10_ovl_b
+rom:0xAB0D0 reloc:MIPS_32 symbol:D_8012EE24_ovl_b
+rom:0xAB0D4 reloc:MIPS_32 symbol:D_8012EE38_ovl_b
+rom:0xAB0EC reloc:MIPS_32 symbol:D_8012EE4C_ovl_b
+rom:0xAB0F0 reloc:MIPS_32 symbol:D_8012EE60_ovl_b
+rom:0xAB124 reloc:MIPS_32 symbol:D_8012EDE8_ovl_b
+rom:0xAB158 reloc:MIPS_32 symbol:D_8012EE88_ovl_b
+rom:0xAB164 reloc:MIPS_32 symbol:D_8012EE74_ovl_b
+rom:0xAB1AC reloc:MIPS_32 symbol:D_8012EE9C_ovl_b
+rom:0xAB1B0 reloc:MIPS_32 symbol:D_8012EEC4_ovl_b
+rom:0xAB1B4 reloc:MIPS_32 symbol:D_8012EED8_ovl_b
+rom:0xAB1B8 reloc:MIPS_32 symbol:D_8012EEB0_ovl_b
+rom:0xAB1E4 reloc:MIPS_32 symbol:D_8012EEEC_ovl_b
+rom:0xAB1F0 reloc:MIPS_32 symbol:D_8012EF28_ovl_b
+rom:0xAB204 reloc:MIPS_32 symbol:D_8012EF78_ovl_b
+rom:0xAB208 reloc:MIPS_32 symbol:D_8012EF8C_ovl_b
+rom:0xAB220 reloc:MIPS_32 symbol:D_8012EF50_ovl_b
+rom:0xAB23C reloc:MIPS_32 symbol:D_8012EF64_ovl_b
+rom:0xAB254 reloc:MIPS_32 symbol:D_8012EFA0_ovl_b
+rom:0xAB260 reloc:MIPS_32 symbol:D_8012EFB4_ovl_b
+rom:0xAB290 reloc:MIPS_32 symbol:D_8012EFDC_ovl_b
+rom:0xAB294 reloc:MIPS_32 symbol:D_8012EFC8_ovl_b
+rom:0xAB2C4 reloc:MIPS_32 symbol:D_8012F02C_ovl_b
+rom:0xAB2C8 reloc:MIPS_32 symbol:D_8012F018_ovl_b
+rom:0xAB2CC reloc:MIPS_32 symbol:D_8012F004_ovl_b
+rom:0xAB2D0 reloc:MIPS_32 symbol:D_8012EFF0_ovl_b
+rom:0xAB2E0 reloc:MIPS_32 symbol:D_8012F02C_ovl_b
+rom:0xAB2E4 reloc:MIPS_32 symbol:D_8012F018_ovl_b
+rom:0xAB2E8 reloc:MIPS_32 symbol:D_8012F004_ovl_b
+rom:0xAB2EC reloc:MIPS_32 symbol:D_8012EFF0_ovl_b
+rom:0xAB318 reloc:MIPS_32 symbol:D_8012F040_ovl_b
+rom:0xAB31C reloc:MIPS_32 symbol:D_8012F068_ovl_b
+rom:0xAB320 reloc:MIPS_32 symbol:D_8012F054_ovl_b
+rom:0xAB36C reloc:MIPS_32 symbol:D_8012F090_ovl_b
+rom:0xAB370 reloc:MIPS_32 symbol:D_8012F07C_ovl_b
+rom:0xAB3A4 reloc:MIPS_32 symbol:D_8012F0B8_ovl_b
+rom:0xAB3A8 reloc:MIPS_32 symbol:D_8012F0F4_ovl_b
+rom:0xAB3AC reloc:MIPS_32 symbol:D_8012F0E0_ovl_b
+rom:0xAB3B0 reloc:MIPS_32 symbol:D_8012F0CC_ovl_b
+rom:0xAB3C0 reloc:MIPS_32 symbol:D_8012F108_ovl_b
+rom:0xAB3C4 reloc:MIPS_32 symbol:D_8012F11C_ovl_b
+rom:0xAB3C8 reloc:MIPS_32 symbol:D_8012F130_ovl_b
+rom:0xAB3E4 reloc:MIPS_32 symbol:D_8012F158_ovl_b
+rom:0xAB3E8 reloc:MIPS_32 symbol:D_8012F144_ovl_b
+rom:0xAB434 reloc:MIPS_32 symbol:D_8012F180_ovl_b
+rom:0xAB438 reloc:MIPS_32 symbol:D_8012F16C_ovl_b
+rom:0xAB43C reloc:MIPS_32 symbol:D_8012F194_ovl_b
+rom:0xAB46C reloc:MIPS_32 symbol:D_8012F1A8_ovl_b
+rom:0xAB470 reloc:MIPS_32 symbol:D_8012F1F8_ovl_b
+rom:0xAB474 reloc:MIPS_32 symbol:D_8012F1D0_ovl_b
+rom:0xAB4BC reloc:MIPS_32 symbol:D_8012F20C_ovl_b
+rom:0xAB4C0 reloc:MIPS_32 symbol:D_8012F220_ovl_b
+rom:0xAB4D8 reloc:MIPS_32 symbol:D_8012F234_ovl_b
+rom:0xAB4E0 reloc:MIPS_32 symbol:D_8012F248_ovl_b
+rom:0xAB4F4 reloc:MIPS_32 symbol:D_8012F270_ovl_b
+rom:0xAB4F8 reloc:MIPS_32 symbol:D_8012F25C_ovl_b
+rom:0xAB534 reloc:MIPS_32 symbol:D_8012F2AC_ovl_b
+rom:0xAB548 reloc:MIPS_32 symbol:D_8012F2C0_ovl_b
+rom:0xAB5A4 reloc:MIPS_32 symbol:D_8012F2D4_ovl_b
+rom:0xAB5A8 reloc:MIPS_32 symbol:D_8012F2E8_ovl_b
+rom:0xAB5B8 reloc:MIPS_32 symbol:D_8012F2FC_ovl_b
+rom:0xAB5BC reloc:MIPS_32 symbol:D_8012F310_ovl_b
+rom:0xAB5DC reloc:MIPS_32 symbol:D_8012F324_ovl_b
+rom:0xAB5E0 reloc:MIPS_32 symbol:D_8012F338_ovl_b
+rom:0xAB630 reloc:MIPS_32 symbol:D_8012F34C_ovl_b
+rom:0xAB634 reloc:MIPS_32 symbol:D_8012F374_ovl_b
+rom:0xAB660 reloc:MIPS_32 symbol:D_8012F3B0_ovl_b
+rom:0xAB664 reloc:MIPS_32 symbol:D_8012F388_ovl_b
+rom:0xAB668 reloc:MIPS_32 symbol:D_8012F39C_ovl_b
+rom:0xAB684 reloc:MIPS_32 symbol:D_8012F3EC_ovl_b
+rom:0xAB688 reloc:MIPS_32 symbol:D_8012F3C4_ovl_b
+rom:0xAB698 reloc:MIPS_32 symbol:D_8012F414_ovl_b
+rom:0xAB69C reloc:MIPS_32 symbol:D_8012F43C_ovl_b
+rom:0xAB6A0 reloc:MIPS_32 symbol:D_8012F428_ovl_b
+rom:0xAB6A4 reloc:MIPS_32 symbol:D_8012F400_ovl_b
+rom:0xAB6D8 reloc:MIPS_32 symbol:D_8012F478_ovl_b
+rom:0xAB6DC reloc:MIPS_32 symbol:D_8012F450_ovl_b
+rom:0xAB6EC reloc:MIPS_32 symbol:D_8012F4B4_ovl_b
+rom:0xAB6F0 reloc:MIPS_32 symbol:D_8012F4A0_ovl_b
+rom:0xAB6F4 reloc:MIPS_32 symbol:D_8012F48C_ovl_b
+rom:0xAB708 reloc:MIPS_32 symbol:D_8012F4C8_ovl_b
+rom:0xAB710 reloc:MIPS_32 symbol:D_8012F4DC_ovl_b
+rom:0xAB714 reloc:MIPS_32 symbol:D_8012F4F0_ovl_b
+rom:0xAB724 reloc:MIPS_32 symbol:D_8012F504_ovl_b
+rom:0xAB728 reloc:MIPS_32 symbol:D_8012F518_ovl_b
+rom:0xAB740 reloc:MIPS_32 symbol:D_8012F568_ovl_b
+rom:0xAB744 reloc:MIPS_32 symbol:D_8012F57C_ovl_b
+rom:0xAB748 reloc:MIPS_32 symbol:D_8012F52C_ovl_b
+rom:0xAB74C reloc:MIPS_32 symbol:D_8012F540_ovl_b
+rom:0xAB75C reloc:MIPS_32 symbol:D_8012F590_ovl_b
+rom:0xAB760 reloc:MIPS_32 symbol:D_8012F5B8_ovl_b
+rom:0xAB7B4 reloc:MIPS_32 symbol:D_8012F608_ovl_b
+rom:0xAB7B8 reloc:MIPS_32 symbol:D_8012F5E0_ovl_b
+rom:0xAB7BC reloc:MIPS_32 symbol:D_8012F5F4_ovl_b
+rom:0xAB7CC reloc:MIPS_32 symbol:D_8012F61C_ovl_b
+rom:0xAB7D4 reloc:MIPS_32 symbol:D_8012F644_ovl_b
+rom:0xAB7D8 reloc:MIPS_32 symbol:D_8012F66C_ovl_b
+rom:0xAB820 reloc:MIPS_32 symbol:D_8012F680_ovl_b
+rom:0xAB828 reloc:MIPS_32 symbol:D_8012F694_ovl_b
+rom:0xAB82C reloc:MIPS_32 symbol:D_8012F6A8_ovl_b
+rom:0xAB858 reloc:MIPS_32 symbol:D_8012F748_ovl_b
+rom:0xAB85C reloc:MIPS_32 symbol:D_8012F734_ovl_b
+rom:0xAB890 reloc:MIPS_32 symbol:D_8012F784_ovl_b
+rom:0xAB894 reloc:MIPS_32 symbol:D_8012F770_ovl_b
+rom:0xAB898 reloc:MIPS_32 symbol:D_8012F75C_ovl_b
+rom:0xAB89C reloc:MIPS_32 symbol:D_8012F798_ovl_b
+rom:0xAB900 reloc:MIPS_32 symbol:D_8012F7D4_ovl_b
+rom:0xAB90C reloc:MIPS_32 symbol:D_8012F7C0_ovl_b
+rom:0xAB920 reloc:MIPS_32 symbol:D_8012F810_ovl_b
+rom:0xAB924 reloc:MIPS_32 symbol:D_8012F84C_ovl_b
+rom:0xAB928 reloc:MIPS_32 symbol:D_8012F7FC_ovl_b
+rom:0xAB93C reloc:MIPS_32 symbol:D_8012F888_ovl_b
+rom:0xAB940 reloc:MIPS_32 symbol:D_8012F874_ovl_b
+rom:0xAB944 reloc:MIPS_32 symbol:D_8012F860_ovl_b
+rom:0xAB998 reloc:MIPS_32 symbol:D_8012F8B0_ovl_b
+rom:0xAB9A8 reloc:MIPS_32 symbol:D_8012F8C4_ovl_b
+rom:0xAB9B0 reloc:MIPS_32 symbol:D_8012F8D8_ovl_b
+rom:0xAB9C4 reloc:MIPS_32 symbol:D_8012F8EC_ovl_b
+rom:0xAB9C8 reloc:MIPS_32 symbol:D_8012F900_ovl_b
+rom:0xAB9E0 reloc:MIPS_32 symbol:D_8012F914_ovl_b
+rom:0xAB9E8 reloc:MIPS_32 symbol:D_8012F928_ovl_b
+rom:0xAB9FC reloc:MIPS_32 symbol:D_8012F93C_ovl_b
+rom:0xABA00 reloc:MIPS_32 symbol:D_8012F9A0_ovl_b
+rom:0xABB84 reloc:MIPS_32 symbol:D_8012F9C8_ovl_b
+rom:0xAF13C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xAF140 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xAF454 reloc:MIPS_NONE symbol:none // no rom
+rom:0xB0974 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB0978 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0998 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB099C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0AD0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB0AD4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0AE4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB0AE8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0B2C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB0B34 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0B40 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB0B44 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0B94 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB0B98 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0CEC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB0CF0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB0E2C reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xB0E30 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xB11C4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB11C8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB129C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB12A0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB135C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB1360 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB13CC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB13D0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB1D88 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB1D8C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB1DC0 reloc:MIPS_HI16 symbol:D_800457A8
+rom:0xB1DC8 reloc:MIPS_LO16 symbol:D_800457A8
+rom:0xB2008 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB200C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB2150 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB2154 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB216C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB2170 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB2354 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB235C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB2370 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB2378 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB239C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB23A0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB23E0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB23E4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB2620 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB2624 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB2704 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB2708 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB2778 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB277C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB3328 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB332C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB3404 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB3408 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB34D4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB34D8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB359C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB35A0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB3660 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB3664 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB36B4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB36B8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB3720 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB3728 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB389C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB38A0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB38BC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB38C0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB3968 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB396C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB398C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB3990 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB39BC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB39C0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB434C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4350 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB43F4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB43F8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB44B4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB44B8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4578 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB457C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB466C reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xB4670 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xB47B8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB47BC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4800 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4804 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4AC0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4AC4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4B10 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4B14 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4B9C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4BA0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4C10 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4C14 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4CD4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4CD8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4D0C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4D10 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4D4C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4D50 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4E98 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4E9C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4ECC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4ED0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4EF8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4EFC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4F08 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4F0C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB4FB0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB4FB4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5084 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5088 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB50BC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB50C0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5198 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB519C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB524C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5250 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5374 reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xB5378 reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xB5384 reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xB5388 reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xB53A8 reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xB53AC reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xB53D0 reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xB53D4 reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xB53E4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB53E8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5414 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5418 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5444 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5448 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5474 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5478 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5730 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5734 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5EF0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5EF4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5F64 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5F6C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5F8C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5F90 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB5FE0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB5FE8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB6438 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB643C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB6B8C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB6B90 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB6DC4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB6DC8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB70C4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB70C8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB7FDC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB7FE0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB8000 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8004 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB8018 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8020 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB81B0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB81B4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB81F8 reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xB81FC reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xB8218 reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xB821C reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xB83D8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB83DC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB880C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8810 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB88A8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB88AC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB899C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB89A0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB8CCC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8CD0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB8DA8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8DAC reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB8DF0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8DF4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB8E3C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8E40 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB8F34 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB8F38 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9020 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9024 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9208 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB920C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9224 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9228 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9260 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9264 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB92E0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB92E4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB94B8 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB94C0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9698 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB969C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB96B4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB96B8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9740 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9748 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9ADC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9AE0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9B70 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9B74 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9BC4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9BC8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9C94 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9C98 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9D24 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9D28 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9D6C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9D70 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9F1C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9F24 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xB9F38 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xB9F3C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xBBAA0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xBBCC4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xBBF9C reloc:MIPS_NONE symbol:none // no rom
+rom:0xBC8EC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xBC8F0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xBCC20 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xBCC24 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xBD8D4 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xBD8D8 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xBD900 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xBD904 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xBE204 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xBE208 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xBE670 reloc:MIPS_NONE symbol:none // no rom
+rom:0xBF500 reloc:MIPS_NONE symbol:none // no address
+rom:0xBFDA0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC03D4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC0880 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC0BC4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC0CA8 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC133C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC13B4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC1620 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC1768 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC1BE8 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC1E8C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC2624 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xC2628 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xC4244 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC45B4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC46CC reloc:MIPS_NONE symbol:none // no rom
+rom:0xC47EC reloc:MIPS_NONE symbol:none // no rom
+rom:0xC47F4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC536C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC556C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC5620 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC5A00 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC5B08 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC5BE4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC5D04 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC5E18 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC600C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC6544 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC665C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC6B14 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC6D1C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC7B98 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0xC7BA0 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0xC7C00 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC7F60 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC9258 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC945C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC98D0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC9B20 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC9DD0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xC9E2C reloc:MIPS_NONE symbol:none // no rom
+rom:0xC9F48 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCA0B8 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCADEC reloc:MIPS_NONE symbol:none // no rom
+rom:0xCB24C reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xCB250 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xCB288 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCB338 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCB6E4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCBCDC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xCBCE0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xCBDA4 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xCBDA8 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xCBE20 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCBEE4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCBF60 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xCBF64 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xCBFA0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xCBFA4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xCC0D4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCC46C reloc:MIPS_NONE symbol:none // no rom
+rom:0xCC6C0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCCB88 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCCCB0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD048 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD17C reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD424 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD520 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD650 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD7C4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD8BC reloc:MIPS_NONE symbol:none // no rom
+rom:0xCD9B4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCDA88 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCDAE8 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCDBB4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCDCF8 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCDF2C reloc:MIPS_NONE symbol:none // no rom
+rom:0xCE638 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCE878 reloc:MIPS_NONE symbol:none // no rom
+rom:0xCEBFC reloc:MIPS_NONE symbol:none // no rom
+rom:0xD0288 reloc:MIPS_NONE symbol:none // no rom
+rom:0xD0DDC reloc:MIPS_NONE symbol:none // no rom
+rom:0xD2808 reloc:MIPS_NONE symbol:none // no rom
+rom:0xD3DB4 reloc:MIPS_NONE symbol:none // no rom
+rom:0xD3F8C reloc:MIPS_NONE symbol:none // no rom
+rom:0xD42B0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xD469C reloc:MIPS_NONE symbol:none // no rom
+rom:0xD48DC reloc:MIPS_NONE symbol:none // no rom
+rom:0xD4C58 reloc:MIPS_NONE symbol:none // no rom
+rom:0xD4F98 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xD4F9C reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xD4FEC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xD4FF0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xD612C reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xD6130 reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xD6890 reloc:MIPS_HI16 symbol:D_80106644_ovl_a
+rom:0xD6894 reloc:MIPS_LO16 symbol:D_80106644_ovl_a
+rom:0xD6AEC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xD6AF0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xD7700 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xD7704 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xD84E0 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xD84E4 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xD8D58 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xD8D5C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xD8D78 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xD8D7C reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xD9834 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xD9838 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xDA914 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xDA918 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xDC004 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xDC008 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xDC94C reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDC950 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDD814 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDD818 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDD890 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDD894 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDE948 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDE94C reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDE984 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDE988 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDE9B8 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDE9BC reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDE9EC reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDE9F0 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFB30 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFB34 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFB98 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFB9C reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFBE4 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFBE8 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFCB4 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFCB8 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFD10 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFD14 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFE00 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFE04 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFE78 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFE7C reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xDFEAC reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xDFEB0 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xE1CA0 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xE1CA4 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xE2270 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xE2274 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xE2444 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xE2448 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xE2710 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0xE2714 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0xE72AC reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xE72B0 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xE7364 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xE7368 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xE80A0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xE80A8 reloc:MIPS_NONE symbol:none // no rom
+rom:0xE9674 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xE9678 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xEA948 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xEA950 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xEBD60 reloc:MIPS_HI16 symbol:D_800457A4
+rom:0xEBD68 reloc:MIPS_LO16 symbol:D_800457A4
+rom:0xEE680 reloc:MIPS_NONE symbol:none // no rom
+rom:0xEF5C0 reloc:MIPS_NONE symbol:none // no rom
+rom:0xF0A54 reloc:MIPS_32 symbol:D_800F3688_ovl_a
+rom:0xF258C reloc:MIPS_NONE symbol:none
+rom:0xF7294 reloc:MIPS_32 symbol:D_8014E584_ovl_c
+rom:0xF729C reloc:MIPS_32 symbol:D_8014E5BC_ovl_c
+rom:0xF72A4 reloc:MIPS_32 symbol:D_8014E66C_ovl_c
+rom:0xF72AC reloc:MIPS_32 symbol:D_8014E6B0_ovl_c
+rom:0xF72B4 reloc:MIPS_32 symbol:D_8014E784_ovl_c
+rom:0xF72BC reloc:MIPS_32 symbol:D_8014E820_ovl_c
+rom:0xF72C4 reloc:MIPS_32 symbol:D_8014E84C_ovl_c
+rom:0xF72CC reloc:MIPS_32 symbol:D_8014EBDC_ovl_c
+rom:0xF72D4 reloc:MIPS_32 symbol:D_8014E964_ovl_c
+rom:0xF72DC reloc:MIPS_32 symbol:D_8014E96C_ovl_c
+rom:0xF72E4 reloc:MIPS_32 symbol:D_8014E9BC_ovl_c
+rom:0xF72EC reloc:MIPS_32 symbol:D_8014EA58_ovl_c
+rom:0xF72F4 reloc:MIPS_32 symbol:D_8014E89C_ovl_c
+rom:0xF72FC reloc:MIPS_32 symbol:D_8014E8A4_ovl_c
+rom:0xF7304 reloc:MIPS_32 symbol:D_8014E8DC_ovl_c
+rom:0xF730C reloc:MIPS_32 symbol:D_8014E908_ovl_c
+rom:0xF7314 reloc:MIPS_32 symbol:D_8014E934_ovl_c
+rom:0xF731C reloc:MIPS_32 symbol:D_8014F638_ovl_c
+rom:0xF7324 reloc:MIPS_32 symbol:D_8014ED08_ovl_c
+rom:0xF732C reloc:MIPS_32 symbol:D_8014EC3C_ovl_c
+rom:0xF7334 reloc:MIPS_32 symbol:D_8014EC90_ovl_c
+rom:0xF733C reloc:MIPS_32 symbol:D_8014EC90_ovl_c
+rom:0xF7344 reloc:MIPS_32 symbol:D_8014ECA8_ovl_c
+rom:0xF734C reloc:MIPS_32 symbol:D_8014ECA8_ovl_c
+rom:0xF7354 reloc:MIPS_32 symbol:D_8014EAA0_ovl_c
+rom:0xF735C reloc:MIPS_32 symbol:D_8014EB3C_ovl_c
+rom:0xF7364 reloc:MIPS_32 symbol:D_8014EB5C_ovl_c
+rom:0xF736C reloc:MIPS_32 symbol:D_8014EB98_ovl_c
+rom:0xF7374 reloc:MIPS_32 symbol:D_8014ED38_ovl_c
+rom:0xF737C reloc:MIPS_32 symbol:D_8014ED58_ovl_c
+rom:0xF7384 reloc:MIPS_32 symbol:D_8014EFEC_ovl_c
+rom:0xF738C reloc:MIPS_32 symbol:D_8014F04C_ovl_c
+rom:0xF7394 reloc:MIPS_32 symbol:D_8014F2E0_ovl_c
+rom:0xF739C reloc:MIPS_32 symbol:D_8014F3A0_ovl_c
+rom:0xF73A4 reloc:MIPS_32 symbol:D_8014F460_ovl_c
+rom:0xF73AC reloc:MIPS_32 symbol:D_8014F520_ovl_c
+rom:0xF73B4 reloc:MIPS_32 symbol:D_8014F54C_ovl_c
+rom:0xF73BC reloc:MIPS_32 symbol:D_8014F534_ovl_c
+rom:0xF73C4 reloc:MIPS_32 symbol:D_8014F5D0_ovl_c
+rom:0xF73CC reloc:MIPS_32 symbol:D_8014F5F0_ovl_c
+rom:0xF73D4 reloc:MIPS_32 symbol:D_8014E5BC_ovl_c
+rom:0xF7A74 reloc:MIPS_32 symbol:func_80003F84 addend:0x7C
+rom:0xF86D8 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF86E4 reloc:MIPS_32 symbol:D_80150A4C_ovl_c
+rom:0xF86EC reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF86F8 reloc:MIPS_32 symbol:D_80150A4C_ovl_c
+rom:0xF8700 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF870C reloc:MIPS_32 symbol:D_80150A4C_ovl_c
+rom:0xF8714 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8720 reloc:MIPS_32 symbol:D_80150A50_ovl_c
+rom:0xF8728 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8734 reloc:MIPS_32 symbol:D_80150A54_ovl_c
+rom:0xF873C reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8748 reloc:MIPS_32 symbol:D_80150A58_ovl_c
+rom:0xF8750 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8770 reloc:MIPS_32 symbol:D_80150A60_ovl_c
+rom:0xF8778 reloc:MIPS_32 symbol:D_80150A20_ovl_c
+rom:0xF8784 reloc:MIPS_32 symbol:D_80150A6C_ovl_c
+rom:0xF878C reloc:MIPS_32 symbol:D_80150A20_ovl_c
+rom:0xF8798 reloc:MIPS_32 symbol:D_80150A78_ovl_c
+rom:0xF87A0 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF87AC reloc:MIPS_32 symbol:D_80150A80_ovl_c
+rom:0xF87B4 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF87C0 reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF87C8 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF87D4 reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF87DC reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF87E8 reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF87F0 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF87FC reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF8804 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8810 reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF8818 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8824 reloc:MIPS_32 symbol:D_80150A8C_ovl_c
+rom:0xF882C reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8838 reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF8840 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF884C reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF8854 reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0xF8860 reloc:MIPS_32 symbol:D_80150A94_ovl_c
+rom:0xF8868 reloc:MIPS_32 symbol:D_80150A20_ovl_c
+rom:0xF8874 reloc:MIPS_32 symbol:D_80150A88_ovl_c
+rom:0xF887C reloc:MIPS_32 symbol:D_801509E0_ovl_c
+rom:0x128D54 reloc:MIPS_NONE symbol:none // no rom
+rom:0x128F1C reloc:MIPS_NONE symbol:none // no rom
+rom:0x12AAD8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x12FFDC reloc:MIPS_NONE symbol:none // no rom
+rom:0x1305F0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x130ADC reloc:MIPS_NONE symbol:none // no rom
+rom:0x1310F0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x1312EC reloc:MIPS_NONE symbol:none // no rom
+rom:0x13142C reloc:MIPS_NONE symbol:none // no rom
+rom:0x131438 reloc:MIPS_NONE symbol:none // no rom
+rom:0x131F1C reloc:MIPS_NONE symbol:none // no rom
+rom:0x1322D0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x132EDC reloc:MIPS_NONE symbol:none // no rom
+rom:0x132EE4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x1333BC reloc:MIPS_NONE symbol:none // no rom
+rom:0x133C54 reloc:MIPS_NONE symbol:none // no rom
+rom:0x133C64 reloc:MIPS_NONE symbol:none // no rom
+rom:0x133EFC reloc:MIPS_NONE symbol:none // no rom
+rom:0x13447C reloc:MIPS_NONE symbol:none // no rom
+rom:0x1346AC reloc:MIPS_NONE symbol:none // no rom
+rom:0x134A40 reloc:MIPS_NONE symbol:none // no rom
+rom:0x134A48 reloc:MIPS_NONE symbol:none // no rom
+rom:0x134C7C reloc:MIPS_NONE symbol:none // no rom
+rom:0x134D50 reloc:MIPS_NONE symbol:none // no rom
+rom:0x1350EC reloc:MIPS_NONE symbol:none // no rom
+rom:0x1350F4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x13562C reloc:MIPS_NONE symbol:none // no rom
+rom:0x135980 reloc:MIPS_NONE symbol:none // no rom
+rom:0x135ED8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x136470 reloc:MIPS_NONE symbol:none // no rom
+rom:0x1364A0 reloc:MIPS_NONE symbol:none // no rom
+rom:0x136B2C reloc:MIPS_NONE symbol:none // no rom
+rom:0x136CEC reloc:MIPS_NONE symbol:none // no rom
+rom:0x136D44 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x136D48 reloc:MIPS_NONE symbol:none // ori gives a number
+rom:0x136F10 reloc:MIPS_NONE symbol:none // no rom
+rom:0x137174 reloc:MIPS_NONE symbol:none // no rom
+rom:0x13717C reloc:MIPS_NONE symbol:none // no rom
+rom:0x139C64 reloc:MIPS_NONE symbol:none // no rom
+rom:0x139F54 reloc:MIPS_NONE symbol:none // no rom
+rom:0x13A210 reloc:MIPS_NONE symbol:none // no rom
+rom:0x13A524 reloc:MIPS_NONE symbol:none // no rom
+rom:0x13AAA8 reloc:MIPS_NONE symbol:none // no rom
+rom:0x13AFA4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x13E4AC reloc:MIPS_32 symbol:D_8014CD40_ovl_d
+rom:0x13E4B0 reloc:MIPS_32 symbol:D_8014CD34_ovl_d
+rom:0x13E4B4 reloc:MIPS_32 symbol:D_8014CD28_ovl_d
+rom:0x13E4B8 reloc:MIPS_32 symbol:D_8014CD20_ovl_d
+rom:0x13E4BC reloc:MIPS_32 symbol:D_8014CD14_ovl_d
+rom:0x13E4C0 reloc:MIPS_32 symbol:D_8014CD0C_ovl_d
+rom:0x13E4C4 reloc:MIPS_32 symbol:D_8014CD00_ovl_d
+rom:0x1455C4 reloc:MIPS_NONE symbol:none // no rom
+rom:0x1455EC reloc:MIPS_NONE symbol:none // no rom
+rom:0x1455FC reloc:MIPS_NONE symbol:none // no rom
+rom:0x14560C reloc:MIPS_NONE symbol:none // no rom
+rom:0x1467FC reloc:MIPS_NONE symbol:none // no rom
+rom:0x147588 reloc:MIPS_NONE symbol:none // no rom
+rom:0x147984 reloc:MIPS_NONE symbol:none // no rom
+rom:0x147A40 reloc:MIPS_NONE symbol:none // no rom
+rom:0x14DB54 reloc:MIPS_NONE symbol:none // no rom
+rom:0x14E36C reloc:MIPS_NONE symbol:none // no rom
+rom:0x180E00 reloc:MIPS_HI16 symbol:D_800457AC
+rom:0x180E04 reloc:MIPS_LO16 symbol:D_800457AC
+rom:0x184010 reloc:MIPS_NONE symbol:none // no rom
+rom:0x1AFB10 reloc:MIPS_32 symbol:osSpTaskLoad addend:0x20
+rom:0x1AFB3C reloc:MIPS_32 symbol:func_80035750 addend:0xB0
+rom:0x1AFB8C reloc:MIPS_32 symbol:osJamMesg addend:0x70
+rom:0x1B8D18 reloc:MIPS_32 symbol:D_8014CB08_ovl_e
+rom:0x1B8D1C reloc:MIPS_32 symbol:D_8014CB94_ovl_e
+rom:0x1B8D20 reloc:MIPS_32 symbol:D_8014CB58_ovl_e
+rom:0x1B8D24 reloc:MIPS_32 symbol:D_8014CB30_ovl_e
+rom:0x1B8D28 reloc:MIPS_32 symbol:D_8014CBD0_ovl_e
+rom:0x1B8EB0 reloc:MIPS_32 symbol:func_80003F84 addend:0x7C
+rom:0x1B92D8 reloc:MIPS_32 symbol:D_8014E038_ovl_e
+rom:0x1BBF10 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF14 reloc:MIPS_32 symbol:func_80120898_ovl_e addend:0x28
+rom:0x1BBF18 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF1C reloc:MIPS_32 symbol:func_80120898_ovl_e addend:0x28
+rom:0x1BBF20 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF24 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF28 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF2C reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF30 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF34 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF38 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF3C reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF40 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF44 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF48 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF4C reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF50 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF54 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF58 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF5C reloc:MIPS_32 symbol:func_80120898_ovl_e addend:0x20
+rom:0x1BBF60 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF64 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF68 reloc:MIPS_32 symbol:func_80120898_ovl_e addend:0x20
+rom:0x1BBF6C reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF70 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF74 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF78 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF7C reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
+rom:0x1BBF80 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF84 reloc:MIPS_32 symbol:func_80120AC8_ovl_e addend:0x2C
+rom:0x1BBF88 reloc:MIPS_32 symbol:func_801208E8_ovl_e addend:0x10
