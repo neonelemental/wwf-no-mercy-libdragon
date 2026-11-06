@@ -3,10 +3,11 @@
     python3 tools/link_script.py SPLIT OUT
 
 It copies SPLIT/nomercy.ld to OUT/nomercy.ld with `. += PAD;` at the start
-of main text, main data and main bss, and a pad of PAD plus 0x10 times its
-rom order at the start of each overlay's text. ld takes PAD by --defsym, so
-PAD=0 gives the retail layout. Each overlay has its own pad, so a reference
-that names the wrong overlay gives a wrong value in a padded build.
+of main text, main data, main bss, and the text of ovl_a and ovl_e. ld takes
+PAD by --defsym, so PAD=0 gives the retail layout. Code jumps into a slot
+with no choice of the overlay in it. Thus each overlay must move a vram of a
+slot by the same distance. Slot 2 starts at the end of ovl_a, and ovl_e
+spans both slots, so ovl_b, ovl_c and ovl_d get no pad.
 
 It also writes OUT/undefined_funcs.ld and OUT/undefined_syms.ld from the
 lists of the split, with each line in PROVIDE. splat lists symbols that an
@@ -17,14 +18,12 @@ import re
 import sys
 from pathlib import Path
 
-OVERLAYS = ["ovl_a", "ovl_b", "ovl_c", "ovl_d", "ovl_e"]
+SLOT1 = ["ovl_a", "ovl_e"]
 
 
 def pads():
-    out = {name: "PAD" for name in ("main_TEXT_START", "main_DATA_START", "main_BSS_START")}
-    for order, name in enumerate(OVERLAYS):
-        out[f"{name}_TEXT_START"] = f"PAD ? PAD + 0x{order * 0x10:X} : 0"
-    return out
+    names = ["main_TEXT_START", "main_DATA_START", "main_BSS_START"]
+    return {name: "PAD" for name in names + [f"{o}_TEXT_START" for o in SLOT1]}
 
 
 def script(text):
