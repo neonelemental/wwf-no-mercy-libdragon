@@ -1,0 +1,61 @@
+--- a/include/emux.h
++++ b/include/emux.h
+@@ -148,6 +148,12 @@
+ #define EMUX_EXCEPTION_CPU_UNMAPPED_ACCESS     (cast64(1) << 3)  ///< CPU access to RCP unmapped area
+ 
+ #ifndef __ASSEMBLER__
++
++#if _MIPS_SIM == _ABIO32
++typedef uint32_t emux_reg_t;
++#else
++typedef uint64_t emux_reg_t;
++#endif
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -173,7 +179,7 @@
+      *  2) copy the scratch GPR into a GCC output register
+      */
+     const int REG_T0 = 8;
+-    register uint64_t result asm("t0") = 0;
++    register emux_reg_t result asm("t0") = 0;
+ 
+     __asm__ __volatile__(
+         " .word %1\n"
+@@ -419,7 +425,7 @@
+     const int REG_T0 = 8;
+     const int REG_T1 = 9;
+     register int __slot asm("t0") = slot;
+-    register uint64_t __metric asm("t1") = metric;
++    register emux_reg_t __metric asm("t1") = metric;
+ 
+     __asm__ __volatile__(
+         " .word %2\n"
+@@ -445,7 +451,7 @@
+ inline void emux_exception_set_mask(uint64_t mask)
+ {
+     const int REG_T0 = 8;
+-    register uint64_t __mask asm("t0") = mask;
++    register emux_reg_t __mask asm("t0") = mask;
+     __asm__ __volatile__(" .word %1\n" :: "r"(__mask), "i"(EMUX_XEXCEPTION(REG_T0)) : "memory");
+ }
+ 
+--- a/src/audio/mid64.c
++++ b/src/audio/mid64.c
+@@ -96,11 +96,11 @@
+ static uint64_t mid64_ticks_to_samples(mid64player_t *p, uint32_t delta)
+ {
+ 	uint64_t den = (uint64_t)p->ppqn * 1000000ull;
+-	// delta * tempo_us * rate can exceed 64 bits for large VLQs; use 128-bit.
+-	__int128 num = (__int128)p->timing_remainder
+-		+ (__int128)delta * p->tempo_us * p->sample_rate;
+-	uint64_t samples = (uint64_t)(num / den);
+-	p->timing_remainder = (uint64_t)(num % den);
++	// delta * tempo_us * rate can exceed 64 bits, so divide delta * tempo_us first.
++	uint64_t a = (uint64_t)delta * p->tempo_us;
++	uint64_t t = (a % den) * p->sample_rate + p->timing_remainder;
++	uint64_t samples = (a / den) * p->sample_rate + t / den;
++	p->timing_remainder = t % den;
+ 	return samples;
+ }
+ 

@@ -1,0 +1,22 @@
+--- a/src/inthandler.S
++++ b/src/inthandler.S
+@@ -303,11 +303,18 @@
+ thread_schedule_from_interrupt:
+ 	# Save full exception context in preparation for stack switching
+ 	mfc0 t0, C0_SR
++	# COP1 is on only if the handler used the FPU. Its exception then saved
++	# the FPU registers of the thread here, and a second save would overwrite
++	# them with the handler's.
++	srl t1, t0, 29
++	andi t1, 1
++	bnez t1, 1f
++	nop
+ 	or t0, SR_CU1
+ 	mtc0 t0, C0_SR
+ 	jal save_fpu_regs
+ 	move a0, sp
+-	jal finalize_exception_frame
++1:	jal finalize_exception_frame
+ 	nop
+ 
+ 	# Call the scheduler

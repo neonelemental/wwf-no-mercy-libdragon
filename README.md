@@ -37,8 +37,10 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make clean` | removes everything the build wrote |
 
 `symbol_addrs.txt` names each routine of the main code. `tests/hello` is a
-ROM that prints `hello from libdragon`. Run it on a console with a
-flashcart, or in an accurate emulator such as [ares](https://ares-emu.net).
+ROM that prints `hello from libdragon`. `tests/boot` starts libdragon from the
+IPL3 of `baserom.z64`, with libdragon built at o32; it runs nine threads and
+prints what they count. Run each on a console with a flashcart, or in an
+accurate emulator such as [ares](https://ares-emu.net).
 
 This repository contains no game data. Everything the split writes stays in
 `build/`, which git ignores.

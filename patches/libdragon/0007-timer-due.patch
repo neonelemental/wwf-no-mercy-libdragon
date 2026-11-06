@@ -1,0 +1,78 @@
+--- a/src/timer.c
++++ b/src/timer.c
+@@ -21,18 +21,23 @@
+ /** @brief Timer callback expects a context parameter */
+ #define TF_CONTEXT     0x20
+ 
+-/** @brief Update the compare register to match the first expiring timer. */
++/**
++ * @brief Update the compare register to match the first expiring timer.
++ *
++ * @return true if Count is already past the new compare value, so that no
++ *         interrupt comes until Count wraps.
++ */
+ __attribute__((noinline))
+-static void timer_update_compare(timer_link_t *head, uint32_t now)
++static bool timer_update_compare(timer_link_t *head, uint32_t now)
+ {
+-	uint32_t smallest = 0xFFFFFFFF;
++	int32_t smallest = INT32_MAX;
+ 
+ 	while (head)
+ 	{
+-		/* See how much time is left before the timer expires. Notice that
+-		   the subtraction is also safe with overflows. */
+-		uint32_t left = head->left - now;
+-		if (left < smallest)
++		/* A timer that is due has a time left of zero or less. Compare
++		   must not go past it, as __proc_timers skips a timer before it. */
++		int32_t left = TICKS_DISTANCE(now, head->left);
++		if (!(head->flags & TF_DISABLED) && left < smallest)
+ 			smallest = left;
+ 
+ 		/* Go to next */
+@@ -40,7 +45,9 @@
+ 	}
+ 
+ 	/* set compare to shortest time left */
+-	C0_WRITE_COMPARE(now + smallest);
++	uint32_t when = now + smallest;
++	C0_WRITE_COMPARE(when);
++	return TICKS_DISTANCE(when, TICKS_READ()) >= 0;
+ }
+ 
+ /**
+@@ -132,14 +139,16 @@
+ static void timer_poll(void)
+ {
+ 	uint32_t loop_count = 0;
+-	while (__proc_timers(TI_timers)) {
+-		++loop_count; (void)loop_count; // avoid warning (loop_count is used in assertf)
+-		assertf(loop_count < 1000, "timer interrupt is stuck in an infinite loop.\n"
+-			"Check continuous timers with a very short period.\n");
+-	}
++	do {
++		while (__proc_timers(TI_timers)) {
++			++loop_count; (void)loop_count; // avoid warning (loop_count is used in assertf)
++			assertf(loop_count < 1000, "timer interrupt is stuck in an infinite loop.\n"
++				"Check continuous timers with a very short period.\n");
++		}
+ 
+-	// Update counter for next interrupt.
+-	timer_update_compare(TI_timers, TICKS_READ());
++		// Update counter for next interrupt. If Count is already past it,
++		// the interrupt does not come, so process the list again.
++	} while (timer_update_compare(TI_timers, TICKS_READ()));
+ }
+ 
+ void timer_init(void)
+@@ -306,7 +315,8 @@
+ 			head = head->next;
+ 		}
+ 		timer->flags |= TF_DISABLED;
+-		timer_update_compare(TI_timers, TICKS_READ());
++		if (timer_update_compare(TI_timers, TICKS_READ()))
++			timer_poll();
+ 		enable_interrupts();
+ 	}
+ }

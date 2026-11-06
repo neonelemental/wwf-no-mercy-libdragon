@@ -1,0 +1,70 @@
+--- a/Makefile
++++ b/Makefile
+@@ -47,6 +47,7 @@
+ 	$(BUILD_DIR)/entrypoint.o \
+ 	$(BUILD_DIR)/entropy.o \
+ 	$(BUILD_DIR)/rand.o \
++	$(BUILD_DIR)/atomic8.o \
+ 	$(BUILD_DIR)/utils.o \
+ 	$(BUILD_DIR)/debug.o \
+ 	$(BUILD_DIR)/debugcpp.o \
+--- /dev/null
++++ b/src/atomic8.c
+@@ -0,0 +1,57 @@
++/**
++ * @file atomic8.c
++ * @brief 64-bit atomics for o32, where GCC calls them as functions.
++ *
++ * The CPU has one core, so each operation runs with interrupts disabled.
++ */
++#include <stdbool.h>
++#include <stdint.h>
++#include "interrupt.h"
++
++/// @cond
++uint64_t atomic8_load(const volatile void *ptr, int order) __asm__("__atomic_load_8");
++void atomic8_store(volatile void *ptr, uint64_t val, int order) __asm__("__atomic_store_8");
++bool atomic8_compare_exchange(volatile void *ptr, void *expected, uint64_t desired,
++    int success, int failure) __asm__("__atomic_compare_exchange_8");
++uint64_t atomic8_fetch_xor(volatile void *ptr, uint64_t val, int order) __asm__("__atomic_fetch_xor_8");
++
++uint64_t atomic8_load(const volatile void *ptr, int order)
++{
++    disable_interrupts();
++    uint64_t val = *(const volatile uint64_t *)ptr;
++    enable_interrupts();
++    return val;
++}
++
++void atomic8_store(volatile void *ptr, uint64_t val, int order)
++{
++    disable_interrupts();
++    *(volatile uint64_t *)ptr = val;
++    enable_interrupts();
++}
++
++bool atomic8_compare_exchange(volatile void *ptr, void *expected, uint64_t desired,
++    int success, int failure)
++{
++    volatile uint64_t *p = ptr;
++    uint64_t *e = expected;
++    disable_interrupts();
++    bool equal = *p == *e;
++    if (equal)
++        *p = desired;
++    else
++        *e = *p;
++    enable_interrupts();
++    return equal;
++}
++
++uint64_t atomic8_fetch_xor(volatile void *ptr, uint64_t val, int order)
++{
++    volatile uint64_t *p = ptr;
++    disable_interrupts();
++    uint64_t old = *p;
++    *p = old ^ val;
++    enable_interrupts();
++    return old;
++}
++/// @endcond
