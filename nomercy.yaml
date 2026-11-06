@@ -1,0 +1,92 @@
+# splat config: splits baserom.z64 into build/split/. Main is assembly and
+# data; the overlays and the files stay binary.
+name: WWF No Mercy (USA) (Rev 1)
+sha1: 91cee3d096f4a76644d8b35b9aead6448909abd1
+options:
+  basename: nomercy
+  target_path: baserom.z64
+  base_path: .
+  platform: n64
+  compiler: IDO
+  mips_abi_float_regs: o32
+  find_file_boundaries: True
+
+  asm_path: build/split/asm
+  asset_path: build/split/assets
+  build_path: build/split/obj
+  cache_path: build/split/.splache
+  generated_asm_macros_directory: build/split/include
+  ld_script_path: build/split/nomercy.ld
+  undefined_funcs_auto_path: build/split/undefined_funcs_auto.txt
+  undefined_syms_auto_path: build/split/undefined_syms_auto.txt
+  symbol_addrs_path:
+    - symbol_addrs.txt
+
+  section_order: [.text, .data, .bss]
+  ld_bss_is_noload: True
+
+segments:
+  - name: header
+    type: bin
+    start: 0x0
+
+  - name: ipl3
+    type: bin
+    start: 0x40
+
+  - name: entry
+    type: code
+    start: 0x1000
+    vram: 0x80000400
+    subsegments:
+      - [0x1000, asm, entry]
+
+  - name: main
+    type: code
+    start: 0x1050
+    vram: 0x80000450
+    bss_size: 0x672F0
+    subsegments:
+      - [0x1050, asm, main]
+      - [0x40F80, data, main_data]
+      - [0x41050, data, rsp_audio_text]
+      - [0x41CB0, data, rsp_f3dex2_text]
+      - [0x43050, data, rsp_f3dlx2_text]
+      - [0x44230, data, game_id]
+      - [0x44270, data, tables]
+      - [0x55920, data, rsp_audio_data]
+      - [0x55BD0, data, rsp_f3dex2_data]
+      - [0x55FF0, data, rsp_f3dlx2_data]
+      - [0x56410, data, tables_56410]
+      - { start: 0x57270, type: bss, vram: 0x80056670, name: main_bss }
+
+  - name: main_tail
+    type: bin
+    start: 0x57270
+    vram: 0x8038F760
+
+  - name: ovl_a
+    type: bin
+    start: 0x57310
+
+  - name: ovl_b
+    type: bin
+    start: 0x81210
+
+  - name: ovl_c
+    type: bin
+    start: 0xAE390
+
+  - name: ovl_d
+    type: bin
+    start: 0xFD250
+
+  - name: ovl_e
+    type: bin
+    start: 0x144BE0
+
+  - name: files
+    type: bin
+    start: 0x1BD150
+
+  - [0x1FA6B10]
