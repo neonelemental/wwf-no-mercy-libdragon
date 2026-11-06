@@ -39,8 +39,10 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 ROM that prints `hello from libdragon`. `tests/boot` starts libdragon from the
 IPL3 of `baserom.z64`, with libdragon built at o32; it runs nine threads and
 prints what they count. `tests/kernel` runs libultra's thread, queue and event
-calls on libdragon's kernel and prints its counts. Run each on a console with a flashcart, or in an
-accurate emulator such as [ares](https://ares-emu.net).
+calls on libdragon's kernel and prints its counts. `tests/mixer` plays the
+samples of `baserom.z64` on libdragon's mixer with up to 24 channels. Run each
+on a console with a flashcart, or in an accurate emulator such as
+[ares](https://ares-emu.net).
 
 This repository contains no game data. Everything the split writes stays in
 `build/`, which git ignores.
