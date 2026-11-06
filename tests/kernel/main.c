@@ -3,7 +3,6 @@
 // and main as the idle thread. It prints a count for each path.
 
 #include <libdragon.h>
-#include <string.h>
 #include "ultra.h"
 
 #define VI_TARGET 3600
@@ -14,27 +13,6 @@
 #define JAM(n) ((OSMesg)(uintptr_t)(0x200 + (n)))
 // A timer of 60 VIs.
 #define TIMER_60_VI ((OSTime)TICKS_PER_SECOND * 1001 / 1000)
-
-// Some emulators do not do MI repeat mode, so the display and the console fill
-// with the CPU. The link sends each call of sys_hw_memset* here.
-void *__wrap_sys_hw_memset(void *ptr, uint8_t value, size_t len)
-{
-    return memset(ptr, value, len);
-}
-
-void *__wrap_sys_hw_memset16(void *ptr, uint16_t value, size_t len)
-{
-    for (size_t i = 0; i < len / 2; i++)
-        ((uint16_t *)ptr)[i] = value;
-    return ptr;
-}
-
-void *__wrap_sys_hw_memset32(void *ptr, uint32_t value, size_t len)
-{
-    for (size_t i = 0; i < len / 4; i++)
-        ((uint32_t *)ptr)[i] = value;
-    return ptr;
-}
 
 enum { T_PI, T_VI, T_SCHED, T_AUDIOSTART, T_GFXSTART, T_AUDIO, T_GFX, T_GAME, CREATED };
 static OSThread threads[CREATED], extra, due;

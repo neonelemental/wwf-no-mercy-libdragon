@@ -5,34 +5,12 @@
 #include <libdragon.h>
 #include <kernel.h>
 #include <kqueue.h>
-#include <string.h>
 
 #define VI_TARGET 10000
 #define RING 64
 #define STACK (16 * 1024)
 
 void __kcond_signal_isr(kcond_t *cond);
-
-// Some emulators do not do MI repeat mode, so the display and the console fill
-// with the CPU. The link sends each call of sys_hw_memset* here.
-void *__wrap_sys_hw_memset(void *ptr, uint8_t value, size_t len)
-{
-    return memset(ptr, value, len);
-}
-
-void *__wrap_sys_hw_memset16(void *ptr, uint16_t value, size_t len)
-{
-    for (size_t i = 0; i < len / 2; i++)
-        ((uint16_t *)ptr)[i] = value;
-    return ptr;
-}
-
-void *__wrap_sys_hw_memset32(void *ptr, uint32_t value, size_t len)
-{
-    for (size_t i = 0; i < len / 4; i++)
-        ((uint32_t *)ptr)[i] = value;
-    return ptr;
-}
 
 static volatile uint32_t ring[RING];
 static volatile uint32_t ring_head, ring_tail;
@@ -111,13 +89,8 @@ static int sleep_thread(void *arg)
     return 0;
 }
 
-// The doubles and the print wait for the VI, so that they do not depend on the
-// timer interrupt.
-static void wait_vi(void)
-{
-    kirq_wait_t w = kirq_begin_wait_vi();
-    kirq_wait(&w);
-}
+// The doubles and the print sleep for about a frame, on the timer interrupt.
+#define FRAME_SLEEP TICKS_FROM_MS(16)
 
 static int sums_thread(void *arg)
 {
@@ -135,7 +108,7 @@ static int sums_thread(void *arg)
         if (t0 != s->want[0] || t1 != s->want[1] || t2 != s->want[2] || t3 != s->want[3])
             s->bad++;
         s->rounds++;
-        wait_vi();
+        kthread_sleep(FRAME_SLEEP);
     }
     return 0;
 }
@@ -159,7 +132,7 @@ static int print_thread(void *arg)
         if (vi_sent == VI_TARGET && vi_taken == VI_TARGET)
             printf("done\n");
         console_render();
-        wait_vi();
+        kthread_sleep(FRAME_SLEEP);
     }
     return 0;
 }

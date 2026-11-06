@@ -44,7 +44,7 @@ $(BUILD_DIR)/kernel/%.o: $(KERNEL_DIR)/%.c
 
 $(BUILD_DIR)/kernel.elf: $(OBJS) $(BOOT_DIR)/boot.ld $(N64_LIBDIR)/libdragon.a $(N64_LIBDIR)/libdragonsys.a
 	$(N64_CC) $(N64_C_AND_CXX_FLAGS) -o $@ $(OBJS) $(patsubst %,-Wl$(COMMA)%,$(BOOT_LDFLAGS)) \
-		-Wl,--wrap=sys_hw_memset,--wrap=sys_hw_memset16,--wrap=sys_hw_memset32 -Wl,--start-group -lc -Wl,-ldragon,-ldragonsys -Wl,--end-group -Wl,-Map=$(BUILD_DIR)/kernel.map
+		-Wl,--start-group -lc -Wl,-ldragon,-ldragonsys -Wl,--end-group -Wl,-Map=$(BUILD_DIR)/kernel.map
 	$(N64_SIZE) -G $@
 
 clean:

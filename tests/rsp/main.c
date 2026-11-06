@@ -7,25 +7,6 @@
 #include <libdragon.h>
 #include <string.h>
 
-void *__wrap_sys_hw_memset(void *ptr, uint8_t value, size_t len)
-{
-    return memset(ptr, value, len);
-}
-
-void *__wrap_sys_hw_memset16(void *ptr, uint16_t value, size_t len)
-{
-    for (size_t i = 0; i < len / 2; i++)
-        ((uint16_t *)ptr)[i] = value;
-    return ptr;
-}
-
-void *__wrap_sys_hw_memset32(void *ptr, uint32_t value, size_t len)
-{
-    for (size_t i = 0; i < len / 4; i++)
-        ((uint32_t *)ptr)[i] = value;
-    return ptr;
-}
-
 // rspq_start loads a static overlay header that has 4-byte alignment, and a
 // DMA needs 8. The link sends each call from outside rsp.c through a buffer.
 void __real_rsp_load_data(void *start, unsigned long size, unsigned int dmem_offset);
@@ -168,9 +149,6 @@ static void raw_run(struct stats *s, int i, void *fb)
         }
     }
     *MI_MODE = MI_WMODE_CLR_DPINT;
-    // rspq loads no data over the task header; an emulator takes type 1 there
-    // as a graphics task.
-    SP_DMEM[0xFC0 / 4] = 0;
     int extra = __rspq_syncpoints_done[0] - sync0;
     if (extra) {
         // Take back the syncpoints that rspq counted for the raw task, before
