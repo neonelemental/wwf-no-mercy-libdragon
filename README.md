@@ -40,9 +40,11 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 `symbol_addrs.txt` names each routine of the main code, and `extra_addrs.txt`
 names each other address that a word points to. `reloc_addrs.txt` gives each
 word that holds an address its symbol, and the word moves with the code. It
-gives `MIPS_NONE` to each word that is a number. With no pad, the source
-variant is the retail image. With a pad of 0x40 or 0x100, it boots through the
-title to the front end and plays sound.
+gives `MIPS_NONE` to each word that is a number. With no pad, the game code of
+the source variant sits where it sits in the retail image. The variant boots
+from `src/boot/boot.S`, which loads libdragon, built at o32 and placed at rom
+0x2000000, into the Expansion Pak. With a pad of 0x40 or 0x100, it boots
+through the title to the front end and plays sound.
 
 `tests/hello` is a ROM that prints `hello from libdragon`. `tests/boot` starts
 libdragon from the IPL3 of `baserom.z64`, with libdragon built at o32; it runs
