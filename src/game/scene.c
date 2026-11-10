@@ -15,3 +15,28 @@ void scene_walk(SceneNode *node)
         }
     }
 }
+
+// The first object of each node that draws, and their count.
+extern SceneObject *D_80060BA0[900];
+extern s16 D_800619B2;
+// The view matrix by the projection matrix.
+extern Matrix D_80062BA8;
+
+void scene_project(void)
+{
+    for (u32 i = 0; i < (u32)D_800619B2; i++) {
+        SceneObject *object = D_80060BA0[i];
+        SceneNode *node = object->node;
+        if ((node->pass & 0x80) || node->raw) {
+            object->key = (float)((double)object->bias * 1024.0);
+            continue;
+        }
+        mtx_mul(node->world, D_80062BA8, node->product);
+        guMtxXFMF(node->product, object->centre[0], object->centre[1], object->centre[2],
+            &object->projected[0], &object->projected[1], &object->projected[2]);
+        float xx = object->projected[0] * object->projected[0];
+        float yy = object->projected[1] * object->projected[1];
+        object->key = (float)((double)(object->bias + object->projected[2]) * 1024.0);
+        object->key = object->key + __builtin_sqrtf(xx + yy);
+    }
+}
