@@ -2,3 +2,5 @@ func_80002268 scene_walk
 func_800022A8
 func_800022D8 scene_project
 func_800023C8
+func_80002400 scene_sort
+func_800024F0

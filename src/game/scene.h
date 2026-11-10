@@ -62,5 +62,8 @@ ULTRA_AT(SceneObject, mtx, 0x38);
 void scene_walk(SceneNode *node);
 // Gives the node of each object its product, and the object its depth key.
 void scene_project(void);
+// Puts the objects in the order of their keys, the largest first. When whole
+// is 0, it makes one pass that swaps neighbours.
+void scene_sort(s32 whole);
 
 #endif
