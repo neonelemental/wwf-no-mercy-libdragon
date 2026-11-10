@@ -29,5 +29,8 @@ inline s32 draw_in_view(SceneObject *object)
 // fixed-point matrices of its objects for this turn. A chain of kind 1 whose
 // head is out of view gets no place.
 void draw_scan(s32 turn, s32 pass, s32 kind);
+// Makes the draw order of a frame: the pass of each chain, the matrix of
+// each object whose node keeps its own product, then the eight scans.
+void draw_order(s32 turn);
 
 #endif

@@ -44,3 +44,32 @@ void draw_scan(s32 turn, s32 pass, s32 kind)
         D_800619B4++;
     }
 }
+
+// The pass that a chain of kind 1 draws in, by the pass of its node.
+extern u8 D_80043618[];
+
+void draw_order(s32 turn)
+{
+    turn = (s16)turn;
+    D_800619B4 = 0;
+    for (u32 i = 0; i < (u32)D_800619B2; i++) {
+        SceneObject *object = D_80060BA0[i];
+        u8 pass = object->node->pass;
+        if (pass & 0x80) {
+            D_800619B8[i] = 0xFF;
+            guMtxF2L(object->node->product, &object->mtx[turn]);
+        } else if (object->kind == 1) {
+            D_800619B8[i] = D_80043618[pass];
+        } else {
+            D_800619B8[i] = pass;
+        }
+    }
+    draw_scan(turn, 0, 0);
+    draw_scan(turn, 0, 1);
+    draw_scan(turn, 6, 0);
+    draw_scan(turn, 3, 0);
+    draw_scan(turn, 4, 1);
+    draw_scan(turn, 4, 0);
+    draw_scan(turn, 5, 1);
+    draw_scan(turn, 5, 0);
+}
