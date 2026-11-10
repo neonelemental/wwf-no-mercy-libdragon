@@ -1,3 +1,10 @@
 func_80021B10 rope_side
 func_80021B9C
 func_80021CC4
+func_8001DF38 ringside_tick
+func_8001E1E4
+func_8001E1F0
+func_8001E294
+func_8001E2B0
+func_8001E2B4
+func_8001E344
