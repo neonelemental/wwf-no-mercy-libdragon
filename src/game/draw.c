@@ -135,3 +135,86 @@ Gfx *draw_list_start(DrawFrame *frame, s32 clear)
     g[4].w1 = 0x8000;
     return g + 5;
 }
+
+// The PRIM and the ENV colour of a node's lists: 4 of each for each turn.
+extern u8 D_80062B68[2][4][4];
+extern u8 D_80062B88[2][4][4];
+
+static u32 colour(u8 table[2][4][4], u32 which)
+{
+    u8 *c = &table[0][0][0] + which + (D_80043610 << 4);
+    return c[0] << 24 | c[1] << 16 | c[2] << 8 | c[3];
+}
+
+s32 draw_list_objects(Gfx **list, s32 turn, s32 first)
+{
+    turn = (s16)turn;
+    u32 i = (s16)first;
+    SceneObject **chain = &D_80061D40[(s16)first];
+    s32 kind = (*chain)->kind;
+    for (; i < (u32)D_800619B4; i++, chain++) {
+        SceneObject *object = *chain;
+        if (object->kind != kind) {
+            break;
+        }
+        for (; object; object = object->next) {
+            Gfx *g = (*list)++;
+            g->w0 = 0xDC38000E;
+            g->w1 = (u32)&object->mtx[turn] - 0x80000000;
+            g = (*list)++;
+            g->w0 = 0xDB0C0000;
+            g->w1 = 0x00010000;
+            if (!object->vertices) {
+                continue;
+            }
+            // At most 32 vertices to a command.
+            u32 at = physical(object->vertices);
+            u32 count = object->count;
+            u32 place = object->first;
+            while (count > 32) {
+                g = (*list)++;
+                place += 32;
+                count -= 32;
+                g->w1 = at;
+                g->w0 = 0x01020000 | (place & 0x7F) << 1;
+                at += 32 * sizeof(Vertex);
+            }
+            g = (*list)++;
+            g->w0 = 0x01000000 | (count & 0xFF) << 12 | ((place + count) & 0x7F) << 1;
+            g->w1 = at;
+        }
+        for (object = *chain; object; object = object->next) {
+            if (!object->list) {
+                continue;
+            }
+            SceneNode *node = object->node;
+            if (!node->raw) {
+                u32 which = (node->colour & 0xF) << 2;
+                Gfx *g = (*list)++;
+                g->w0 = 0xFA000000;
+                g->w1 = colour(D_80062B68, which);
+                g = (*list)++;
+                g->w0 = 0xFB000000;
+                g->w1 = colour(D_80062B88, which);
+            }
+            Gfx *g = (*list)++;
+            g->w0 = 0xDE000000;
+            g->w1 = (u32)object->list - 0x80000000;
+        }
+    }
+    return (s16)i;
+}
+
+// Ends the display list of a task and sends the task. With last, it is the
+// last of its frame, and kind picks its microcode.
+void func_80002DE4(DrawFrame *frame, Gfx *list, s32 last, s32 kind);
+
+s32 draw_task(DrawFrame *frame, s32 turn, s32 first)
+{
+    first = (s16)first;
+    Gfx *list = draw_list_start(frame, first == 0);
+    s32 kind = D_80061D40[first]->kind;
+    s32 next = (s16)draw_list_objects(&list, (s16)turn, first);
+    func_80002DE4(frame, list, next >= D_800619B4, (s16)kind);
+    return next;
+}

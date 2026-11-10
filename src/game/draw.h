@@ -51,5 +51,12 @@ void draw_order(s32 turn);
 // Starts the display list of a task in the buffer of this turn, and gives
 // where its next command goes. With clear, the list first fills the picture.
 Gfx *draw_list_start(DrawFrame *frame, s32 clear);
+// Writes the commands of the chains from first on, as far as they are of one
+// kind: the matrix and the vertices of each object, then the lists. Gives
+// the place of the first chain that it left.
+s32 draw_list_objects(Gfx **list, s32 turn, s32 first);
+// Writes the display list of one task and sends the task. Gives the place
+// of the first chain that it left.
+s32 draw_task(DrawFrame *frame, s32 turn, s32 first);
 
 #endif

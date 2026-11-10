@@ -5,3 +5,5 @@ func_8000267C
 func_80002730 draw_order
 func_800027EC
 func_80002BB4 draw_list_start int
+func_800028B4 draw_list_objects int
+func_80002FA4 draw_task int waits
