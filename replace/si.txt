@@ -1,0 +1,39 @@
+# libultra's controller calls and raw SI call, which src/dragon/si gives on
+# libdragon's joybus. A label with no name is a part of a routine there, or a
+# routine that only this list reaches.
+
+# The controller calls.
+func_800344F0 osContStartQuery
+func_80034570 osContGetQuery
+func_80034590 osContStartReadData
+func_80034618 osContGetReadData
+func_800346B4
+osContInit
+func_800348E4
+func_8003490C
+func_800349C0
+func_80034A80 osContSetCh
+func_80034AC0
+
+# The raw SI call and its lock. The rumble and Controller Pak routines, which
+# stay, call these.
+__osSiRawStartDma
+func_800372FC
+func_80037320
+func_80037340
+func_80037394 __osSiGetAccess
+func_80037400 __osSiRelAccess
+
+# The voice unit's routines. Only the first has a caller outside the set.
+func_8002F470 osVoiceInit
+func_8002F590
+func_8002F630
+func_8002F820
+func_8002F9D0
+func_8002FA0C
+func_8002FA50
+func_8002FBF0
+func_8002FBF4
+func_8002FC40
+func_8002FDA8
+func_8002FE00

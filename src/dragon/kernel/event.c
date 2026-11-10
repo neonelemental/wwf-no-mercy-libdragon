@@ -1,5 +1,6 @@
 // libultra's events from libdragon's interrupts. libdragon's handler has
-// acknowledged each interrupt before these run.
+// acknowledged each interrupt before these run. joybus owns the SI interrupt,
+// so src/dragon/si posts the SI's event.
 
 #include <libdragon.h>
 #include <kernel.h>
@@ -14,7 +15,6 @@ static void sp(void)
     ultra_event(status & (SP_STATUS_SIG1 | SP_STATUS_SIG2) ? OS_EVENT_SP : OS_EVENT_SP_BREAK);
 }
 
-static void si(void) { ultra_event(OS_EVENT_SI); }
 static void ai(void) { ultra_event(OS_EVENT_AI); }
 static void pi(void) { ultra_event(OS_EVENT_PI); }
 static void dp(void) { ultra_event(OS_EVENT_DP); }
@@ -32,7 +32,6 @@ void ultra_start(void)
     timer_init();
     kernel_init();
     register_SP_handler(sp);
-    register_SI_handler(si);
     register_AI_handler(ai);
     register_VI_handler(vi);
     register_PI_handler(pi);

@@ -62,11 +62,16 @@ void osInitialize(void)
     D_800A9980 = 1;
 
     // The PIF stops the console unless it is told that the boot is done.
+    // joybus takes each SI interrupt as its own, so the write leaves none.
     volatile u32 *si_status = (u32 *)0xA4800018, *pif = (u32 *)0xBFC007FC;
+    disable_interrupts();
     while (*si_status & 3) {}
     u32 w = *pif;
     while (*si_status & 3) {}
     *pif = w | 8;
+    while (*si_status & 3) {}
+    *si_status = 0;
+    enable_interrupts();
 
     pi_timing(D_800A5FB4, (u32 *)0xA4600014);
     pi_timing(D_8009ED2C, (u32 *)0xA4600024);
