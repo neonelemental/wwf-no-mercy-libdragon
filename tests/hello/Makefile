@@ -1,6 +1,6 @@
 # A console ROM that proves the libdragon build: build/hello.z64.
 
-N64_INST ?= $(abspath ../../build/libdragon/stock)
+N64_INST ?= $(abspath ../../build/libdragon/n64)
 BUILD_DIR = build
 include $(N64_INST)/include/n64.mk
 

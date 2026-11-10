@@ -38,7 +38,8 @@ You need git, Docker and your own copy of WWF No Mercy (USA) (Rev 1):
 
 The build runs in a Docker image that holds libdragon's MIPS toolchain and
 [splat](https://github.com/ethteck/splat). libdragon itself comes from the
-`libdragon` submodule and is built by `make`.
+`libdragon` submodule and is built by `make`, at its own flags, with the two
+fixes of `patches/libdragon/`.
 
     git clone --recurse-submodules https://github.com/neonelemental/wwf-no-mercy-libdragon
     cd wwf-no-mercy-libdragon
@@ -69,8 +70,8 @@ harness reads. `reloc_addrs.txt` gives each
 word that holds an address its symbol, and the word moves with the code. It
 gives `MIPS_NONE` to each word that is a number.
 
-The source variant boots from `src/boot/boot.S`, which loads libdragon, built
-at o32 and placed at rom 0x2000000, into the Expansion Pak. `src/boot/start.S`
+The source variant boots from `src/boot/boot.S`, which loads libdragon,
+placed at rom 0x2000000, into the Expansion Pak. `src/boot/start.S`
 there does the work of libdragon's IPL3 and goes on to libdragon's `_start`,
 and `src/boot/main.c` then starts libdragon's kernel and calls the game's
 entry.
@@ -87,6 +88,14 @@ rumble and Controller Pak routines stay, and call ours.
 The entry is longer than the retail one and main text is shorter, so nothing
 after the entry sits at its retail address. `make play` passes on the variant
 with no pad and with a pad of 0x40.
+
+libdragon and our C are at the o64 ABI, with 64-bit registers and the FR bit
+of the status register set. The game's assembly keeps the o32 calls of the
+retail game, so `tools/thunks.py` writes a thunk for each call between the
+two, and `src/thunks/hand.S` holds the ones that pass a 64-bit value. The
+retail code also writes some doubles by their halves, which works only with
+the FR bit clear: `tools/cut.py` makes each one a single write of the whole
+double, at the places it finds and those of `double_addrs.txt`.
 
 The harness runs a ROM in the image's emulator, as `make` runs there. It
 presses the buttons of a script, saves the pictures that the script asks for,
@@ -113,8 +122,8 @@ it, and the last boot must leave the save of the match as it is, which a boot
 that could not read it does not.
 
 `tests/hello` is a ROM that prints `hello from libdragon`. `tests/boot` starts
-libdragon from the IPL3 of `baserom.z64`, with libdragon built at o32; it runs
-nine threads and prints what they count. `tests/kernel` runs libultra's
+libdragon from the IPL3 of `baserom.z64`; it runs nine threads and prints
+what they count. `tests/kernel` runs libultra's
 thread, queue and event calls on libdragon's kernel and prints its counts.
 `tests/mixer` plays the samples of `baserom.z64` on libdragon's mixer with up
 to 24 channels. Run each on a console with a flashcart, or in an accurate

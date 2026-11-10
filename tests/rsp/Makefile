@@ -1,7 +1,7 @@
 # A console ROM that runs the game's graphics microcode as a raw RSP task beside
 # rspq and rdpq: build/rsp.z64. It starts as tests/boot does.
 
-N64_INST ?= $(abspath ../../build/libdragon/o32)
+N64_INST ?= $(abspath ../../build/libdragon/n64)
 BUILD_DIR = build
 LIBDRAGON_PREVIEW = 2
 include $(N64_INST)/include/n64.mk

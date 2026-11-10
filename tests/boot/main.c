@@ -122,7 +122,7 @@ static int print_thread(void *arg)
             threads += ran[i];
         bool sums_ok = sums_a.bad == 0 && sums_b.bad == 0 && sums_a.rounds && sums_b.rounds;
         console_clear();
-        printf("libdragon o32, stock IPL3\n");
+        printf("libdragon, stock IPL3\n");
         printf("threads %d\n", threads);
         printf("%u of %u\n", (unsigned)vi_taken, (unsigned)vi_sent);
         printf("order bad %u, ring full %u\n", (unsigned)vi_bad, (unsigned)vi_full);

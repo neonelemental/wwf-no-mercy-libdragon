@@ -1,8 +1,8 @@
 # A console ROM that runs libultra's thread, queue and event calls of
-# src/dragon/kernel on libdragon at o32: build/kernel.z64. It starts from the
+# src/dragon/kernel on libdragon: build/kernel.z64. It starts from the
 # stock IPL3 with the boot code and linker script of tests/boot.
 
-N64_INST ?= $(abspath ../../build/libdragon/o32)
+N64_INST ?= $(abspath ../../build/libdragon/n64)
 BUILD_DIR = build
 include $(N64_INST)/include/n64.mk
 

@@ -1,7 +1,7 @@
 # A console ROM that plays samples of the base ROM on libdragon's mixer and
 # times each poll: build/mixer.z64. It starts as tests/boot does.
 
-N64_INST ?= $(abspath ../../build/libdragon/o32)
+N64_INST ?= $(abspath ../../build/libdragon/n64)
 BUILD_DIR = build
 LIBDRAGON_PREVIEW = 2
 include $(N64_INST)/include/n64.mk

@@ -22,10 +22,12 @@ LD      := mips64-elf-ld
 NM      := mips64-elf-nm
 OBJCOPY := mips64-elf-objcopy
 
-ASFLAGS := -EB -march=vr4300 -mabi=32 -G0 -I $(SPLIT)/include
-CFLAGS  := -mabi=32 -mfp32 -march=vr4300 -mtune=vr4300 -mfix4300 -G0 -O2 -mno-abicalls -fno-pic \
+# The split holds instructions and no macro, so the o64 mark of the assembler
+# changes no byte of it. Our C is at o64, as libdragon is.
+ASFLAGS := -EB -march=vr4300 -mabi=o64 -G0 -I $(SPLIT)/include
+CFLAGS  := -march=vr4300 -mtune=vr4300 -mfix4300 -G0 -O2 -mno-abicalls -fno-pic \
 	-ffreestanding -fno-common -DN64 -DLIBDRAGON_PREVIEW=2 -I src/include \
-	-I $(LIBDRAGON_O32)/mips64-elf/include/newlib_overrides -I $(LIBDRAGON_O32)/mips64-elf/include -include ktls.h
+	-I $(LIBDRAGON)/mips64-elf/include/newlib_overrides -I $(LIBDRAGON)/mips64-elf/include -include ktls.h
 
 TESTS := $(patsubst %/Makefile,%,$(wildcard tests/*/Makefile))
 
@@ -115,13 +117,16 @@ SRC     := $(filter-out src/dragon/%,$(shell find src -name '*.c' -o -name '*.S'
 	$(foreach p,$(PARTS),$(shell find src/dragon/$(p) -name '*.c' -o -name '*.S' 2>/dev/null))
 SRC_O   := $(patsubst src/%,$(OUT)/obj/%,$(addsuffix .o,$(basename $(SRC))))
 CUT_O   := $(patsubst $(SPLIT)/asm/%,$(OUT)/split/obj/asm/%.o,$(filter $(SPLIT)/asm/%,$(SPLIT_S)))
-LINK_O  := $(CUT_O) $(filter-out $(SPLIT)/obj/$(SPLIT)/asm/%,$(SPLIT_O)) $(SRC_O)
+# Our C goes into the link through tools/thunks.py, and our assembly as it is.
+C_O     := $(patsubst src/%.c,$(OUT)/obj/%.o,$(filter %.c,$(SRC)))
+S_O     := $(patsubst src/%.S,$(OUT)/obj/%.o,$(filter %.S,$(SRC)))
+OURS_O  := $(S_O) $(patsubst $(OUT)/obj/%,$(OUT)/thunk/%,$(C_O)) $(OUT)/thunk/thunks.o
+LINK_O  := $(CUT_O) $(filter-out $(SPLIT)/obj/$(SPLIT)/asm/%,$(SPLIT_O)) $(OURS_O)
 
-# newlib and libgcc of the o32 multilib.
 LIBC    := $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)
 LIBM    := $(shell $(CC) $(CFLAGS) -print-file-name=libm.a)
 LIBGCC  := $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
-LIBS    := $(addprefix $(LIBDRAGON_O32)/mips64-elf/lib/,libdragon.a libdragonsys.a) $(LIBC) $(LIBM) $(LIBGCC)
+LIBS    := $(addprefix $(LIBDRAGON)/mips64-elf/lib/,libdragon.a libdragonsys.a) $(LIBC) $(LIBM) $(LIBGCC)
 
 # A list of the inputs, written when the set of files changes, so that a
 # removed source file or replace list also gives a new cut and a new link.
@@ -149,6 +154,16 @@ $(OUT)/obj/%.o: src/%.S
 
 -include $(SRC_O:.o=.d)
 
+$(OUT)/thunk/.done: $(C_O) $(S_O) $(CUT_O) tools/thunks.py $(OUT)/split/.done $(OUT)/inputs.txt
+	rm -rf $(OUT)/thunk
+	python3 tools/thunks.py $(OUT) $(NM) $(OBJCOPY) --split $(CUT_O) --c $(C_O) --hand $(S_O)
+	touch $@
+
+$(OUT)/thunk/thunks.S $(patsubst $(OUT)/obj/%,$(OUT)/thunk/%,$(C_O)): $(OUT)/thunk/.done ;
+
+$(OUT)/thunk/thunks.o: $(OUT)/thunk/thunks.S
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 $(OUT)/nomercy.ld: $(SPLIT)/.done tools/link_script.py $(REPLACE) $(OUT)/inputs.txt
 	python3 tools/link_script.py $(SPLIT) $(OUT) --source $(REPLACE)
 
@@ -158,7 +173,7 @@ $(OUT)/nomercy.elf: $(LINK_O) $(OUT)/nomercy.ld dragon.ld $(OUT)/split/.done $(O
 	@rm -f $(OUT)/nomercy.z64
 	$(LD) -m elf32ebmip --emit-relocs --gc-sections --defsym PAD=$(PAD) @$(OUT)/defsyms.txt \
 		-T $(OUT)/nomercy.ld -T dragon.ld -T $(OUT)/undefined_funcs.ld -T $(OUT)/undefined_syms.ld \
-		$(SRC_O) --start-group $(LIBS) --end-group -Map $(OUT)/nomercy.map -o $@.tmp
+		$(OURS_O) --start-group $(LIBS) --end-group -Map $(OUT)/nomercy.map -o $@.tmp
 	end=$$($(NM) $@.tmp | awk '$$3 == "files_ROM_END" { print $$1 }'); \
 	if [ $$((0x$$end)) -gt $$((0x2000000)) ]; then \
 		echo "the files end at rom 0x$$end, past the dragon segment at rom 0x2000000" >&2; exit 1; fi

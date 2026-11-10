@@ -1,7 +1,7 @@
-# A console ROM that starts libdragon at o32 from the stock IPL3: build/boot.z64.
+# A console ROM that starts libdragon from the stock IPL3: build/boot.z64.
 # It is a flat image at 0x80000400 after the header and IPL3 of ../../baserom.z64.
 
-N64_INST ?= $(abspath ../../build/libdragon/o32)
+N64_INST ?= $(abspath ../../build/libdragon/n64)
 BUILD_DIR = build
 include $(N64_INST)/include/n64.mk
 

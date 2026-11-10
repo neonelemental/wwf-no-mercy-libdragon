@@ -11,6 +11,7 @@
 #define STACK (32 * 1024)
 
 void __kcond_signal_isr(kcond_t *cond);
+void ultra_call(void (*entry)(void *), void *arg) __attribute__((weak));
 
 struct ultra_thread ultra_threads[ULTRA_THREADS];
 
@@ -160,7 +161,13 @@ static int trampoline(void *arg)
     // libultra's FPU control word: only an invalid operation traps.
     C1_WRITE_FCR31(t->context.fpcsr);
     void (*entry)(void *) = (void (*)(void *))(uintptr_t)t->context.pc;
-    entry((void *)(uintptr_t)(u32)t->context.a0);
+    void *a0 = (void *)(uintptr_t)(u32)t->context.a0;
+    // In the game, the entry may be assembly with the o32 calls, which
+    // src/thunks/hand.S goes into. A ROM of our C alone has no such thunk.
+    if (ultra_call)
+        ultra_call(entry, a0);
+    else
+        entry(a0);
     exit_self();
 }
 
