@@ -1,19 +1,31 @@
 #include "model.h"
 
+#include "gu.h"
+
 // An angle of the animation data, 1024 to a turn, in degrees.
 static const double ANGLE = 360.0 / 1024;
 
 // The last place that a pose gave whole. A short place is a step from it.
 extern float D_80069F10[3];
 
-// The joints of a pose, in the game's data: the order to make them in, and
-// the parent of each or 0 for a joint with a place of its own.
+// The joints of a pose, in the game's data: where each is at rest in x and
+// y, the order to make them in, the parent of each or 0 for a joint with a
+// place of its own, and 0 or 1 for a hand or -1.
+extern s8 D_80047ED0[POSE_JOINTS][2];
 extern s8 D_80047EF8[POSE_JOINTS];
 extern s8 D_80047F0C[POSE_JOINTS];
+extern s8 D_80047F40[POSE_JOINTS];
+// The kind of hands of each slot, and for each kind their scale and where
+// their pivot is.
+extern s8 D_8006A268[];
+extern float D_80047F54[], D_80047F68[], D_80047F7C[];
+extern float *D_80047FE0[2];
+extern float D_80047FB8[], D_80047FCC[];
 // The share of the way to the next pose that a step moves.
 extern float D_8004800C[3];
 
 // Routines of the game that are still assembly.
+void func_80010FC4(Matrix m, float x, float y, float z);        // sets the place of a matrix
 float func_80011270(float degrees);                              // brings an angle into -180 to 180
 float func_80011324(float from, float to);                       // the way from one angle to another
 float func_8000567C(float x);                                    // its size
@@ -100,5 +112,47 @@ void anim_read(s32 slot_word, s32 step_word)
         joint->angle[0] = joint->angle[0] + turn[0] * *share;
         joint->angle[1] = joint->angle[1] + turn[1] * *share;
         joint->angle[2] = joint->angle[2] + turn[2] * *share;
+    }
+}
+
+void joint_chain(s32 slot_word)
+{
+    s16 slot = slot_word;
+    Matrix bone[POSE_JOINTS];
+    Matrix pivot;
+
+    for (int n = 1; n < POSE_JOINTS; n++) {
+        int j = D_80047EF8[n];
+        ModelNode *node = &D_80091CC0[slot][j];
+        Joint *joint = &D_800A1130[slot][j];
+        int parent = D_80047F0C[j];
+        if (parent != 0) {
+            guMtxXFMF(bone[parent],
+                (float)(D_80047ED0[j][0] - D_80047ED0[parent][0]),
+                (float)(D_80047ED0[j][1] - D_80047ED0[parent][1]),
+                0.0f, &joint->place[0], &joint->place[1], &joint->place[2]);
+        }
+        mtx_rotate(bone[j], joint->angle[0], joint->angle[1], joint->angle[2]);
+        func_80010FC4(bone[j], joint->place[0], joint->place[1], joint->place[2]);
+        if (D_80047F40[j] == -1) {
+            guTranslateF(pivot, (float)-D_80047ED0[j][0], (float)-D_80047ED0[j][1], 0.0f);
+        } else {
+            int kind = D_8006A268[slot];
+            guScaleF(pivot, D_80047F54[kind], D_80047F68[kind], D_80047F7C[kind]);
+            int hand = D_80047F40[j];
+            kind = D_8006A268[slot];
+            float y = D_80047FB8[kind] - (float)D_80047ED0[j][1];
+            float x = D_80047FE0[hand][kind] - (float)D_80047ED0[j][0];
+            func_80010FC4(pivot, x, y, D_80047FCC[kind]);
+        }
+        mtx_mul(pivot, bone[j], node->local);
+        float px = joint->place[0], py = joint->place[1], pz = joint->place[2];
+        float ax = joint->angle[0], ay = joint->angle[1], az = joint->angle[2];
+        joint->last_place[0] = px;
+        joint->last_place[1] = py;
+        joint->last_place[2] = pz;
+        joint->last_angle[0] = ax;
+        joint->last_angle[1] = ay;
+        joint->last_angle[2] = az;
     }
 }

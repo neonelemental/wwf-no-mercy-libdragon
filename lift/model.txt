@@ -1,2 +1,4 @@
 func_800135D0 pose_read int
 func_80013858
+func_80012BE0 joint_chain
+func_80012EA8

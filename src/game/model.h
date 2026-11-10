@@ -1,4 +1,5 @@
-// The model of a wrestler: its pose from the animation data.
+// The model of a wrestler: its pose from the animation data, and the matrix
+// of each joint.
 
 #ifndef GAME_MODEL_H
 #define GAME_MODEL_H
@@ -10,6 +11,7 @@
 // Joint 0 is the wrestler itself, and joints 1 to 19 are those of a pose.
 #define POSE_JOINTS 20
 #define MODEL_JOINTS 23
+#define MODEL_NODES 28
 
 // A joint of a wrestler.
 typedef struct {
@@ -36,6 +38,25 @@ ULTRA_AT(Joint, world2, 0x6C);
 ULTRA_AT(Joint, heading, 0x78);
 
 extern Joint D_800A1130[MODEL_SLOTS][MODEL_JOINTS];
+
+// A node of the scene. It is the SceneNode of src/game/scene.h: fold it into
+// that one at the merge.
+typedef struct ModelNode {
+    struct ModelNode *parent;
+    u8 unknown04[0x18];
+    Matrix local;
+    Matrix world;         // local by the world matrix of the parent
+    Matrix product;
+} ModelNode;
+
+ULTRA_SIZE(ModelNode, 0xDC);
+ULTRA_AT(ModelNode, local, 0x1C);
+ULTRA_AT(ModelNode, world, 0x5C);
+ULTRA_AT(ModelNode, product, 0x9C);
+
+// The nodes of each slot. Node 0 is the wrestler, and node n has the matrix
+// of joint n.
+extern ModelNode D_80091CC0[MODEL_SLOTS][MODEL_NODES];
 
 // The animation that a slot plays. Its file comes from the cartridge a pose
 // at a time, one pose ahead: data[now] holds the pose to read, and the other
@@ -75,5 +96,9 @@ u8 *pose_read(u8 *data, float angle[3], float place[3]);
 // Takes the next pose of the slot from the cartridge and moves each joint a
 // share of the way to it: half for step 0.
 void anim_read(s32 slot, s32 step);
+
+// Makes the matrix of each joint of a pose from its angles, and puts it in
+// the node of the joint.
+void joint_chain(s32 slot);
 
 #endif
