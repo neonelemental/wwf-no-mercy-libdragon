@@ -8,6 +8,10 @@
 //!     press start 6    hold Start for 6 frames, then let go; a+b holds both
 //!     shot title       save the picture as OUTDIR/title.png
 //!
+//! The run fails when the game shows no new picture for 10 seconds or plays
+//! no sound for 30, and when the script ends without both in its last second.
+//! It then prints where the CPU is and saves the picture as OUTDIR/failed.png.
+//!
 //! A frame is one vertical interrupt. The emulator finds two of its parts in
 //! this program by name: the input plugin, and the screen of the angrylion
 //! video plugin, which the image builds without its OpenGL output.
@@ -26,6 +30,12 @@ const PLUGINS: &str = "/usr/local/lib/mupen64plus";
 const DATA: &str = "/usr/local/share/mupen64plus";
 /// Seconds without a frame before the run is given up.
 const STALL: u64 = 60;
+/// Frames with no new picture, and with no sound, before the run fails. A
+/// boot into a match goes at most 252 and 905 without.
+const STILL: u64 = 600;
+const HUSH: u64 = 1800;
+/// A run must end with a picture and a sound newer than this.
+const LIVE: u64 = 60;
 
 // m64p_types.h
 const CORE_API: c_int = 0x020001;
@@ -41,6 +51,12 @@ const PLUGIN_RSP: c_int = 1;
 const PLUGIN_GFX: c_int = 2;
 const PLUGIN_INPUT: c_int = 4;
 const MSG_WARNING: c_int = 2;
+const PTR_RDRAM: c_int = 1;
+const PTR_VI: c_int = 4;
+const PTR_AI: c_int = 6;
+const CPU_PC: c_int = 1;
+const CPU_COP0: c_int = 5;
+const RDRAM_WORDS: usize = 0x80_0000 / 4;
 
 type Message = extern "C" fn(*mut c_void, c_int, *const c_char);
 
@@ -59,6 +75,8 @@ extern "C" {
     fn CoreAttachPlugin(kind: c_int, handle: *mut c_void) -> c_int;
     fn ConfigOpenSection(name: *const c_char, handle: *mut *mut c_void) -> c_int;
     fn ConfigSetParameter(handle: *mut c_void, name: *const c_char, kind: c_int, value: *const c_void) -> c_int;
+    fn DebugMemGetPointer(kind: c_int) -> *mut c_void;
+    fn DebugGetCPUDataPtr(kind: c_int) -> *mut c_void;
 }
 
 #[link(name = "z")]
@@ -78,6 +96,22 @@ const RTLD_NOW: c_int = 2;
 const BUTTONS: [&str; 14] =
     ["right", "left", "down", "up", "start", "z", "b", "a", "cright", "cleft", "cdown", "cup", "r", "l"];
 
+/// How long ago, in frames, the game last gave the console something new.
+#[derive(Default)]
+struct Watch {
+    last: u32,
+    quiet: u64,
+    longest: u64,
+}
+
+impl Watch {
+    fn saw(&mut self, value: u32, new: bool) {
+        self.last = value;
+        self.quiet = if new { 0 } else { self.quiet + 1 };
+        self.longest = self.longest.max(self.quiet);
+    }
+}
+
 enum Step {
     Run { frames: u64, keys: u32 },
     Shot(String),
@@ -96,6 +130,8 @@ struct Run {
     width: usize,
     height: usize,
     height_out: usize,
+    picture: Watch,
+    sound: Watch,
 }
 
 static RUN: Mutex<Option<Run>> = Mutex::new(None);
@@ -169,7 +205,51 @@ fn parse(script: &str) -> Result<Vec<Step>, String> {
     Ok(steps)
 }
 
+/// The loudest sample of the buffer that the game last gave the AI.
+unsafe fn loudest(buffer: u32, len: u32) -> u16 {
+    let rdram = DebugMemGetPointer(PTR_RDRAM) as *const u32;
+    let from = (buffer as usize / 4).min(RDRAM_WORDS);
+    let words = std::slice::from_raw_parts(rdram.add(from), (len as usize / 4).min(RDRAM_WORDS - from));
+    words.iter().flat_map(|word| [(word >> 16) as i16, *word as i16]).map(i16::unsigned_abs).max().unwrap_or(0)
+}
+
 impl Run {
+    /// Fails the run: says why and where the CPU is, and saves the picture.
+    unsafe fn stopped(&self, frame: u64, why: &str) -> ! {
+        let pc = *(DebugGetCPUDataPtr(CPU_PC) as *const u32);
+        let cop0 = DebugGetCPUDataPtr(CPU_COP0) as *const u32;
+        eprintln!("harness: {why}, at frame {frame}");
+        eprintln!(
+            "harness: pc {pc:08x} status {:08x} cause {:08x} epc {:08x} badvaddr {:08x}",
+            *cop0.add(12),
+            *cop0.add(13),
+            *cop0.add(14),
+            *cop0.add(8)
+        );
+        if self.width > 0 && self.height_out > 0 {
+            let _ = fs::write(self.out.join("failed.png"), png(self));
+        }
+        exit(1)
+    }
+
+    /// Notes whether this frame brought a new picture and a buffer of sound,
+    /// and fails the run when either has been gone too long.
+    /// The picture is new when the VI origin moves to another framebuffer,
+    /// not by the line or two between the fields of one.
+    unsafe fn watch(&mut self, frame: u64) {
+        let origin = *(DebugMemGetPointer(PTR_VI) as *const u32).add(1);
+        let ai = DebugMemGetPointer(PTR_AI) as *const u32;
+        let (buffer, len) = (*ai & 0xff_ffff, *ai.add(1));
+        self.picture.saw(origin, origin.abs_diff(self.picture.last) > 0x1000);
+        self.sound.saw(buffer, buffer != self.sound.last && loudest(buffer, len) > 0);
+        if self.picture.quiet >= STILL {
+            self.stopped(frame, &format!("no new picture for {STILL} frames"));
+        }
+        if self.sound.quiet >= HUSH {
+            self.stopped(frame, &format!("no sound for {HUSH} frames"));
+        }
+    }
+
     /// Saves the pictures that the script asks for here, then holds the keys
     /// of the next run. With no run left, the script is done.
     fn next(&mut self, frame: u64) {
@@ -295,6 +375,7 @@ pub unsafe extern "C" fn vdac_sync(_valid: bool) {
     if run.done {
         return;
     }
+    run.watch(frame);
     run.left -= 1;
     if run.left > 0 {
         return;
@@ -302,6 +383,12 @@ pub unsafe extern "C" fn vdac_sync(_valid: bool) {
     run.step += 1;
     run.next(frame);
     let done = run.done;
+    if done && run.picture.quiet > LIVE {
+        run.stopped(frame, &format!("the script ends {} frames after the last new picture", run.picture.quiet));
+    }
+    if done && run.sound.quiet > LIVE {
+        run.stopped(frame, &format!("the script ends {} frames after the last sound", run.sound.quiet));
+    }
     drop(guard);
     if done {
         CoreDoCommand(CMD_STOP, 0, ptr::null_mut());
@@ -386,7 +473,19 @@ fn main() {
     let steps = parse(&String::from_utf8_lossy(&read(&args[2]))).unwrap_or_else(|line| fail(&format!("{}, {line}", args[2])));
     let out = PathBuf::from(&args[3]);
     fs::create_dir_all(&out).unwrap_or_else(|error| fail(&format!("{}: {error}", args[3])));
-    let mut run = Run { steps, step: 0, left: 0, out, done: false, pixels: Vec::new(), width: 0, height: 0, height_out: 0 };
+    let mut run = Run {
+        steps,
+        step: 0,
+        left: 0,
+        out,
+        done: false,
+        pixels: Vec::new(),
+        width: 0,
+        height: 0,
+        height_out: 0,
+        picture: Watch::default(),
+        sound: Watch::default(),
+    };
     run.next(0);
     if run.done {
         fail(&format!("{} runs no frames", args[2]));
@@ -440,8 +539,13 @@ fn main() {
 
     let _ = fs::remove_dir_all(&work);
     let frames = FRAMES.load(Ordering::Relaxed);
-    if !RUN.lock().unwrap().as_ref().unwrap().done {
+    let guard = RUN.lock().unwrap();
+    let run = guard.as_ref().unwrap();
+    if !run.done {
         fail(&format!("the emulator stopped at frame {frames}, before the end of {}", args[2]));
     }
-    println!("{frames} frames");
+    println!(
+        "{frames} frames, at most {} with no new picture and {} with no sound",
+        run.picture.longest, run.sound.longest
+    );
 }

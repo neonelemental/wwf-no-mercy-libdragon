@@ -53,7 +53,7 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make match` | builds `build/match/nomercy.z64` and `nomercy.elf` |
 | `make check` | `make match`, then checks the SHA1 of the image |
 | `make tests` | builds libdragon into `build/libdragon/` and each test ROM into `tests/NAME/build/NAME.z64` |
-| `make harness` | builds `build/harness/release/harness` from `tests/tools`; `harness ROM SCRIPT OUTDIR` runs a ROM in the image's emulator, presses the buttons of the script and saves its pictures. Of `tests/tools/scripts/`, `title.txt` goes to the title and `match.txt` into a single match |
+| `make harness` | builds the test harness of `tests/tools` into `build/harness/release/harness` |
 | `make clean` | removes everything the build wrote |
 
 `symbol_addrs.txt` names each routine of the main code, and `extra_addrs.txt`
@@ -64,6 +64,17 @@ the source variant sits where it sits in the retail image. The variant boots
 from `src/boot/boot.S`, which loads libdragon, built at o32 and placed at rom
 0x2000000, into the Expansion Pak. With a pad of 0x40 or 0x100, it boots
 through the title to the front end and plays sound.
+
+The harness runs a ROM in the image's emulator, presses the buttons of a
+script and saves the pictures that the script asks for:
+
+    build/harness/release/harness build/source/nomercy.z64 tests/tools/scripts/match.txt build/play
+
+Of `tests/tools/scripts/`, `menu.txt` boots to the main menu and `match.txt`
+goes on into a single match. A run fails when the game shows no new picture
+for 10 seconds or plays no sound for 30, and when the script ends without
+both in its last second. It then prints where the CPU is and saves the last
+picture as `failed.png`.
 
 `tests/hello` is a ROM that prints `hello from libdragon`. `tests/boot` starts
 libdragon from the IPL3 of `baserom.z64`, with libdragon built at o32; it runs

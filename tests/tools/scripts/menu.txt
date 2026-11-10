@@ -1,0 +1,10 @@
+# From a cold boot to the main menu, where the music plays.
+run 400          # the legal screen is up
+press start 6    # skips the intro
+run 494
+shot title
+press start 6    # the Rumble Pak notice
+run 200
+press a 6
+run 200
+shot menu        # Multi Play, on Exhibition
