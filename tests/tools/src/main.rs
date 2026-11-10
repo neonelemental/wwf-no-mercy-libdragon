@@ -13,6 +13,8 @@
 //!     shot title       save the picture as OUTDIR/title.png
 //!     read u8 game_mode        print the u8, u16 or u32 at a symbol
 //!     expect u8 game_mode 1    fail the run when it holds another value
+//!     profile          count what each instruction costs from here to the end
+//!                      of the script, into OUTDIR/profile.txt
 //!
 //! The symbols are those of the ELF beside the ROM, ROM.elf for ROM.z64.
 //!
@@ -128,6 +130,7 @@ enum Step {
     Run { frames: u64, keys: u32 },
     Shot(String),
     Read { name: String, address: u32, bytes: u32, expect: Option<u32> },
+    Profile,
 }
 
 /// The script, and the newest picture as angrylion hands it over: RGBA rows
@@ -149,6 +152,8 @@ struct Run {
     /// it, and the frame at which it did.
     inspector: Option<u32>,
     crashed: Option<u64>,
+    /// The new pictures since the script's `profile`.
+    profiled: Option<c_uint>,
 }
 
 static RUN: Mutex<Option<Run>> = Mutex::new(None);
@@ -231,6 +236,20 @@ unsafe fn attach(core: *mut c_void, kind: c_int, name: &str) {
     check(CoreAttachPlugin(kind, plugin), name);
 }
 
+/// Starts the emulator's profile of the run, or with a path ends it and
+/// writes it there. tools/profile.py gives each count for one new picture.
+unsafe fn profile(path: Option<&Path>, pictures: c_uint) {
+    let found = dlsym(open("libmupen64plus.so.2"), cstring("DebugProfile").as_ptr());
+    if found.is_null() {
+        fail("the emulator of this image has no profiler: build the image again");
+    }
+    let profile: extern "C" fn(*const c_char, c_uint) -> c_int = std::mem::transmute(found);
+    let path = path.map(|path| cstring(&path.to_string_lossy()));
+    if profile(path.as_ref().map_or(ptr::null(), |path| path.as_ptr()), pictures) != 0 {
+        fail("the emulator could not keep the profile");
+    }
+}
+
 /// The address of a symbol of a 32-bit big-endian ELF. The compiler puts a
 /// number after the name of a static of a routine (`name.5`), and NAME finds
 /// that one when no symbol has the name alone.
@@ -292,6 +311,7 @@ fn parse(script: &str, elf: Option<&[u8]>) -> Result<Vec<Step>, String> {
             ["shot", name] if !name.contains('/') => Some(Step::Shot(name.to_string())),
             ["read", kind, name] => read(kind, name, None),
             ["expect", kind, name, value] => value_of(value).and_then(|value| read(kind, name, Some(value))),
+            ["profile"] => Some(Step::Profile),
             _ => None,
         };
         steps.push(step.ok_or_else(|| format!("line {}: {}", number + 1, line.trim()))?);
@@ -328,6 +348,9 @@ impl Run {
         let (buffer, len) = (*ai & 0xff_ffff, *ai.add(1));
         self.picture.saw(origin, origin.abs_diff(self.picture.last) > 0x1000);
         self.sound.saw(buffer, buffer != self.sound.last && loudest(buffer, len) > 0);
+        if let Some(pictures) = self.profiled.as_mut() {
+            *pictures += (self.picture.quiet == 0) as c_uint;
+        }
         // libdragon draws its report of a fault or of a failed assert, which
         // takes it some seconds. The run goes on until that is the picture.
         if self.inspector.and_then(|at| peek(at, 1)).is_some_and(|on| on != 0) {
@@ -381,6 +404,11 @@ impl Run {
                     if expect.is_some_and(|expect| expect != value) {
                         self.stopped(frame, &format!("{name} is {value:#x}, not {:#x}", expect.unwrap()));
                     }
+                    self.step += 1;
+                }
+                Step::Profile => {
+                    profile(None, 0);
+                    self.profiled = Some(0);
                     self.step += 1;
                 }
             }
@@ -501,6 +529,11 @@ pub unsafe extern "C" fn vdac_sync(_valid: bool) {
     if done && run.sound.quiet > LIVE {
         run.stopped(frame, &format!("the script ends {} frames after the last sound", run.sound.quiet));
     }
+    if let (true, Some(pictures)) = (done, run.profiled) {
+        let path = run.out.join("profile.txt");
+        profile(Some(&path), pictures);
+        println!("frame {frame}: {}", path.display());
+    }
     drop(guard);
     if done {
         CoreDoCommand(CMD_STOP, 0, ptr::null_mut());
@@ -601,6 +634,7 @@ fn main() {
         sound: Watch::default(),
         inspector: elf.as_deref().and_then(|elf| symbol(elf, "in_inspector")),
         crashed: None,
+        profiled: None,
     };
     unsafe { run.next(0) };
     if run.done {
