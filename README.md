@@ -10,12 +10,14 @@ it back into the retail image. The game files stay binary for now.
 
 In the source variant, libdragon is loaded into the Expansion Pak and starts
 first. The game's threads, message queues and interrupts run on libdragon's
-kernel. The rest of the game still runs on libultra, and each part moves to
-libdragon in turn. The source variant needs the Expansion Pak: with no pak, it
-stops before the game starts.
+kernel, and its video, cartridge reads, controllers, RSP tasks and audio
+output go through our code on libdragon. The flash save, the Controller Pak
+and rumble still run on libultra, on top of our calls. The source variant
+needs the Expansion Pak: with no pak, it stops before the game starts.
 
-The source variant plays a match in the harness's emulator and boots in ares
-147. No console has run it yet.
+The source variant plays a match in the harness's emulator. ares 147 booted
+the build that had only the kernel on libdragon. Neither ares nor a console
+has run the build with the device parts.
 
 | part | on libdragon |
 |---|---|
@@ -79,8 +81,10 @@ leaves out, and `src/dragon/PART/` holds our code in their place.
 `replace/kernel.txt` takes out libultra's kernel: the exception handler, the
 thread dispatch, the boot call, and the thread, queue, event, timer and
 interrupt mask calls. `src/dragon/kernel/` gives each call on libdragon's
-kernel and posts libultra's events from libdragon's interrupts. libultra's
-managers of the VI, the PI and the SI still run, as threads on those calls.
+kernel and posts libultra's events from libdragon's interrupts. In the same
+way, `ai`, `pi`, `si`, `sp` and `vi` take out libultra's audio output, PI
+manager, controller calls, RSP task calls and VI manager. libultra's flash,
+rumble and Controller Pak routines stay, and call ours.
 The entry is longer than the retail one and main text is shorter, so nothing
 after the entry sits at its retail address. `make play` passes on the variant
 with no pad and with a pad of 0x40.
