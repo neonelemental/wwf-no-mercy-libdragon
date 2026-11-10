@@ -23,6 +23,17 @@ SECTIONS
         __text_start = .;
         *(EXCLUDE_FILE(*/split/*) .boot)
         . = ALIGN(16);
+        /* What a switch of thread and an interrupt run, side by side: it is
+         * under 16 KB, so no two of its lines share a line of the
+         * instruction cache. */
+        *libdragon.a:inthandler.o(.text)
+        *(.text.__onSyscallException .text.__kthread_syscall_schedule)
+        *(.text.__kthread_check_overflow .text.__thlist_pop)
+        *(.text.kcond_wait .text.kcond_signal .text.kthread_yield)
+        *(.text.__kcond_signal_isr .text.__kcond_broadcast_isr)
+        *(.text.kthread_current .text.disable_interrupts .text.enable_interrupts)
+        *(.text.__MI_handler .text.get_ticks)
+        */dragon/kernel/*.o(.text)
         *(EXCLUDE_FILE(*/split/*) .text .text.*)
         KEEP(*(keep.text.*))
         *(.init)
