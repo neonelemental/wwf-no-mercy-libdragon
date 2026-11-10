@@ -1,0 +1,42 @@
+diff --git a/src/device/rcp/rdp/rdp_core.c b/src/device/rcp/rdp/rdp_core.c
+index 3063aa1..e4b58b5 100644
+--- a/src/device/rcp/rdp/rdp_core.c
++++ b/src/device/rcp/rdp/rdp_core.c
+@@ -117,7 +117,7 @@ void write_dpc_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mas
+         unprotect_framebuffers(&dp->fb);
+         gfx.processRDPList();
+         protect_framebuffers(&dp->fb);
+-        signal_rcp_interrupt(dp->mi, MI_INTR_DP);
++        /* no DP interrupt here: the RDP sets it on a full sync, through CheckInterrupts */
+         break;
+     }
+ }
+diff --git a/src/plugin/plugin.c b/src/plugin/plugin.c
+index 86e119f..72e11e1 100644
+--- a/src/plugin/plugin.c
++++ b/src/plugin/plugin.c
+@@ -133,6 +133,15 @@ static void EmptyFunc(void)
+ {
+ }
+ 
++/* The video plugin set the DP bit of MI_INTR on a full sync: the CPU sees it now. In a graphics
++ * task the task's end raises it 4000 cycles late, as before, so that libultra's games keep
++ * their timing. */
++static void CheckGfxInterrupts(void)
++{
++    if (!g_dev.sp.gfx_task)
++        signal_rcp_interrupt(&g_dev.mi, 0);
++}
++
+ // Handy macro to avoid code bloat when loading symbols
+ #define GET_FUNC(type, field, name) \
+     ((field = (type)osal_dynlib_getproc(plugin_handle, name)) != NULL)
+@@ -278,7 +287,7 @@ static m64p_error plugin_start_gfx(void)
+     gfx_info.VI_V_BURST_REG = &(g_dev.vi.regs[VI_V_BURST_REG]);
+     gfx_info.VI_X_SCALE_REG = &(g_dev.vi.regs[VI_X_SCALE_REG]);
+     gfx_info.VI_Y_SCALE_REG = &(g_dev.vi.regs[VI_Y_SCALE_REG]);
+-    gfx_info.CheckInterrupts = EmptyFunc;
++    gfx_info.CheckInterrupts = CheckGfxInterrupts;
+ 
+     gfx_info.version = 2; //Version 2 added SP_STATUS_REG and RDRAM_SIZE
+     gfx_info.SP_STATUS_REG = &g_dev.sp.regs[SP_STATUS_REG];

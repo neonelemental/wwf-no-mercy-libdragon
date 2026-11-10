@@ -1,0 +1,68 @@
+diff --git a/src/device/r4300/r4300_core.c b/src/device/r4300/r4300_core.c
+index 76e9f50..6a43eee 100644
+--- a/src/device/r4300/r4300_core.c
++++ b/src/device/r4300/r4300_core.c
+@@ -33,6 +33,7 @@
+ #include "api/m64p_types.h"
+ #ifdef DBG
+ #include "debugger/dbg_debugger.h"
+ #endif
++#include "device/rcp/mi/mi_controller.h"
+ #include "main/main.h"
+ 
+@@ -347,6 +348,28 @@ int r4300_read_aligned_dword(struct r4300_core* r4300, uint32_t address, uint64_
+     return 1;
+ }
+ 
++/* MI repeat mode: while MI_MODE holds the repeat bit, the next CPU write to RDRAM is repeated over
++ * the repeat length + 1 bytes, and the bit clears, as the hardware does. libdragon's memset uses it.
++ * Returns 0, with nothing written, when the bit is clear or the write is not to RDRAM. */
++static int mi_repeat_write(struct r4300_core* r4300, const struct mem_handler* handler, uint32_t address,
++                           const uint32_t* words, const uint32_t* masks, unsigned int n)
++{
++    uint32_t* mode = &r4300->mi->regs[MI_INIT_MODE_REG];
++    uint32_t len, i;
++
++    if ((*mode & 0x80) == 0 || address >= UINT32_C(0x03f00000)) {
++        return 0;
++    }
++    len = (*mode & 0x7f) + 1;
++    *mode &= ~UINT32_C(0x80);
++    invalidate_r4300_cached_code(r4300, UINT32_C(0x80000000) | address, len);
++    invalidate_r4300_cached_code(r4300, UINT32_C(0xa0000000) | address, len);
++    for (i = 0; i < len; i += 4) {
++        mem_write32(handler, address + i, words[(i / 4) % n], masks[(i / 4) % n]);
++    }
++    return 1;
++}
++
+ /* Write aligned word to memory.
+  * address may not be word-aligned for byte or hword accesses.
+  * Alignment is taken care of when calling mem handler.
+@@ -368,7 +391,10 @@ int r4300_write_aligned_word(struct r4300_core* r4300, uint32_t address, uint32_
+ 
+     address &= UINT32_C(0x1ffffffc);
+ 
+-    mem_write32(mem_get_handler(r4300->mem, address), address & ~UINT32_C(3), value, mask);
++    const struct mem_handler* handler = mem_get_handler(r4300->mem, address);
++    if (!mi_repeat_write(r4300, handler, address & ~UINT32_C(3), &value, &mask, 1)) {
++        mem_write32(handler, address & ~UINT32_C(3), value, mask);
++    }
+ 
+     return 1;
+ }
+@@ -399,8 +425,12 @@ int r4300_write_aligned_dword(struct r4300_core* r4300, uint32_t address, uint64
+     address &= UINT32_C(0x1ffffffc);
+ 
+     const struct mem_handler* handler = mem_get_handler(r4300->mem, address);
+-    mem_write32(handler, address + 0, value >> 32,      mask >> 32);
+-    mem_write32(handler, address + 4, (uint32_t) value, (uint32_t) mask      );
++    const uint32_t words[2] = { (uint32_t)(value >> 32), (uint32_t)value };
++    const uint32_t masks[2] = { (uint32_t)(mask >> 32), (uint32_t)mask };
++    if (!mi_repeat_write(r4300, handler, address, words, masks, 2)) {
++        mem_write32(handler, address + 0, words[0], masks[0]);
++        mem_write32(handler, address + 4, words[1], masks[1]);
++    }
+ 
+     return 1;
+ }

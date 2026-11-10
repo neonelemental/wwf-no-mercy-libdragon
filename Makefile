@@ -28,11 +28,15 @@ CFLAGS  := -mabi=32 -mfp32 -march=vr4300 -mtune=vr4300 -mfix4300 -G0 -O2 -mno-ab
 
 TESTS := $(patsubst %/Makefile,%,$(wildcard tests/*/Makefile))
 
-.PHONY: tests $(TESTS) extract match source check clean FORCE
+.PHONY: tests $(TESTS) harness extract match source check clean FORCE
 tests: $(TESTS)
 
 $(TESTS): libdragon
 	$(MAKE) -C $@
+
+# The program of tests/tools that runs a ROM in the image's emulator.
+harness:
+	cargo build --release --manifest-path tests/tools/Cargo.toml --target-dir build/harness
 
 # Splits baserom.z64 into build/split/; splat refuses a dump with another SHA1.
 extract: $(SPLIT)/.done

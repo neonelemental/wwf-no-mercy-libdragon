@@ -50,4 +50,33 @@ RUN python3 -m venv /opt/splat \
     && rm /tmp/requirements.txt
 ENV PATH=/opt/splat/bin:/opt/libdragon/bin:$PATH
 
+# The emulator that tests/tools drives: mupen64plus with the fixes of
+# tests/tools/patches, the cxd4 RSP and the angrylion RDP. The RDP is built
+# without its OpenGL screen, which the harness supplies.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cargo libpng-dev libsdl2-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG M64P_CORE=cf00a1d1b4138a8e04cde47aabcd00ea9a047f57
+ARG M64P_RSP=00906a92641c540a64e4e7505012157315314810
+ARG ANGRYLION=9c8b9ed3e7d7f00dff8bc872ccdd3fba1a3673fc
+COPY tests/tools/patches /tmp/patches
+RUN cd /tmp \
+    && curl -fsSL "https://github.com/mupen64plus/mupen64plus-core/archive/$M64P_CORE.tar.gz" | tar xz \
+    && for p in /tmp/patches/*.patch; do patch -p1 -s -d "mupen64plus-core-$M64P_CORE" -i "$p" || exit 1; done \
+    && make -C "mupen64plus-core-$M64P_CORE/projects/unix" -j"$(nproc)" all install NO_ASM=1 OSD=0 VULKAN=0 \
+    && curl -fsSL "https://github.com/mupen64plus/mupen64plus-rsp-cxd4/archive/$M64P_RSP.tar.gz" | tar xz \
+    && make -C "mupen64plus-rsp-cxd4-$M64P_RSP/projects/unix" -j"$(nproc)" all install \
+        APIDIR=/usr/local/include/mupen64plus POSTFIX= \
+    && curl -fsSL "https://github.com/ata4/angrylion-rdp-plus/archive/$ANGRYLION.tar.gz" | tar xz \
+    && cd "angrylion-rdp-plus-$ANGRYLION" \
+    && python3 make_version.py \
+    && gcc -O3 -fPIC -Isrc -c src/core/n64video.c src/plugin/mupen64plus/gfx_m64p.c src/plugin/mupen64plus/msg.c \
+    && g++ -O3 -fPIC -Isrc -c src/core/parallel.cpp \
+    && g++ -shared -o /usr/local/lib/mupen64plus/mupen64plus-video-angrylion-plus.so *.o -lpthread \
+    && cd /tmp \
+    && rm -rf patches mupen64plus-* angrylion-* \
+    && ln -s libmupen64plus.so.2 /usr/local/lib/libmupen64plus.so \
+    && ldconfig
+
 WORKDIR /src

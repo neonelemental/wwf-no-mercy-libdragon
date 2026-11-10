@@ -1,0 +1,161 @@
+diff --git a/src/device/rcp/rsp/rsp_core.c b/src/device/rcp/rsp/rsp_core.c
+index 99767bc..0092451 100644
+--- a/src/device/rcp/rsp/rsp_core.c
++++ b/src/device/rcp/rsp/rsp_core.c
+@@ -71,6 +71,9 @@ static void do_sp_dma(struct rsp_core* sp, const struct sp_dma* dma)
+     }
+     else
+     {
++        if ((dma->memaddr & 0x1ff8) == 0xfc0)
++            sp->task_header = 1;
++
+         for(j=0; j<count; j++) {
+             if (dramaddr < 0x800000)
+                 pre_framebuffer_read(&sp->dp->fb, dramaddr);
+@@ -231,6 +234,9 @@ void poweron_rsp(struct rsp_core* sp)
+     memset(sp->fifo, 0, SP_DMA_FIFO_SIZE*sizeof(struct sp_dma));
+ 
+     sp->rsp_task_locked = 0;
++    sp->rsp_intr_pending = 0;
++    sp->task_header = 0;
++    sp->gfx_task = 0;
+     sp->mi->r4300->cp0.interrupt_unsafe_state &= ~INTR_UNSAFE_RSP;
+     sp->regs[SP_STATUS_REG] = 1;
+     sp->regs[SP_RD_LEN_REG] = 0xff8;
+@@ -329,11 +335,14 @@ void do_SP_Task(struct rsp_core* sp)
+ 
+     uint32_t sp_delay_time;
+ 
+-    if (sp->mem[0xfc0/4] == 1)
++    /* A task of type 1 is a graphics task only with a header of its own: libdragon's rspq can
++     * leave type 1 here from another task, and its RDP interrupts come only on a full sync. */
++    if (sp->mem[0xfc0/4] == 1 && sp->task_header)
+     {
+         unprotect_framebuffers(&sp->dp->fb);
+ 
+         //gfx.processDList();
++        sp->gfx_task = 1;
+         sp->regs2[SP_PC_REG] &= 0xfff;
+ #if defined(PROFILE)
+         timed_section_start(TIMED_SECTION_GFX);
+@@ -342,6 +351,7 @@ void do_SP_Task(struct rsp_core* sp)
+ #if defined(PROFILE)
+         timed_section_end(TIMED_SECTION_GFX);
+ #endif
++        sp->gfx_task = 0;
+         sp->regs2[SP_PC_REG] |= save_pc;
+         new_frame();
+ 
+@@ -383,39 +393,53 @@ void do_SP_Task(struct rsp_core* sp)
+         sp_delay_time = 0;
+     }
+ 
++    /* The SP interrupt that the task set is held until its event. A task that stopped with no
++     * break or halt (cxd4 stops one that reads SP_STATUS in a loop, or that set SET_INTR) is
++     * "locked": its event runs it again, as the RSP of a console runs on beside the CPU. The
++     * signals stay as the task left them: SIG2 is a syncpoint of libdragon's rspq. */
+     sp->rsp_task_locked = 0;
+     sp->mi->r4300->cp0.interrupt_unsafe_state &= ~INTR_UNSAFE_RSP;
++    sp->rsp_intr_pending |= (sp->mi->regs[MI_INTR_REG] & MI_INTR_SP) != 0;
++    sp->mi->regs[MI_INTR_REG] &= ~MI_INTR_SP;
+     if ((sp->regs[SP_STATUS_REG] & (SP_STATUS_HALT | SP_STATUS_BROKE)) == 0)
+     {
+         sp->rsp_task_locked = 1;
+         sp->mi->r4300->cp0.interrupt_unsafe_state |= INTR_UNSAFE_RSP;
+-        sp->mi->regs[MI_INTR_REG] |= MI_INTR_SP;
++        sp_delay_time = 2000;
+     }
+-    if (sp->mi->regs[MI_INTR_REG] & MI_INTR_SP)
++    else
+     {
+-        cp0_update_count(sp->mi->r4300);
+-        add_interrupt_event(&sp->mi->r4300->cp0, SP_INT, sp_delay_time);
+-        sp->mi->regs[MI_INTR_REG] &= ~MI_INTR_SP;
++        sp->task_header = 0;
+     }
++    /* one event at a time: a task that starts before the event of the last one takes its place,
++     * and the pending interrupt above carries over */
++    remove_event(&sp->mi->r4300->cp0.q, SP_INT);
++    cp0_update_count(sp->mi->r4300);
++    add_interrupt_event(&sp->mi->r4300->cp0, SP_INT, sp_delay_time);
+ 
+-    sp->regs[SP_STATUS_REG] &=
+-        ~(SP_STATUS_TASKDONE | SP_STATUS_BROKE | SP_STATUS_HALT);
++    sp->regs[SP_STATUS_REG] &= ~(SP_STATUS_BROKE | SP_STATUS_HALT);
+ }
+ 
+ void rsp_interrupt_event(void* opaque)
+ {
+     struct rsp_core* sp = (struct rsp_core*)opaque;
++    uint32_t raise = sp->rsp_intr_pending;
+ 
++    sp->rsp_intr_pending = 0;
+     if (!sp->rsp_task_locked)
+     {
+-        sp->regs[SP_STATUS_REG] |=
+-            SP_STATUS_TASKDONE | SP_STATUS_BROKE | SP_STATUS_HALT;
++        sp->regs[SP_STATUS_REG] |= SP_STATUS_BROKE | SP_STATUS_HALT;
+     }
+ 
+-    if ((sp->regs[SP_STATUS_REG] & SP_STATUS_INTR_BREAK) != 0)
++    if (raise)
+     {
+         raise_rcp_interrupt(sp->mi, MI_INTR_SP);
+     }
++
++    if (sp->rsp_task_locked && !(sp->regs[SP_STATUS_REG] & SP_STATUS_HALT))
++    {
++        do_SP_Task(sp);
++    }
+ }
+ 
+ void rsp_end_of_dma_event(void* opaque)
+diff --git a/src/device/rcp/rsp/rsp_core.h b/src/device/rcp/rsp/rsp_core.h
+index 7db6923..6b29d9f 100644
+--- a/src/device/rcp/rsp/rsp_core.h
++++ b/src/device/rcp/rsp/rsp_core.h
+@@ -97,6 +97,13 @@ struct rsp_core
+     uint32_t regs[SP_REGS_COUNT];
+     uint32_t regs2[SP_REGS2_COUNT];
+     uint32_t rsp_task_locked;
++    /* the task set the SP interrupt (SET_INTR, or a break under INTR_BREAK): its event raises it */
++    uint32_t rsp_intr_pending;
++    /* the CPU loaded an OSTask header (a DMA to DMEM 0xFC0) for the next task: libultra does so
++     * for each task, libdragon's rspq never */
++    uint32_t task_header;
++    /* a graphics task runs: the DP interrupt of its full sync waits for the task's end */
++    uint32_t gfx_task;
+ 
+     struct mi_controller* mi;
+     struct rdp_core* dp;
+diff --git a/src/main/savestates.c b/src/main/savestates.c
+index 646abb0..008db0f 100644
+--- a/src/main/savestates.c
++++ b/src/main/savestates.c
+@@ -950,6 +950,13 @@ static int savestates_load_m64p(struct device* dev, char *filepath)
+     poweron_fb(&dev->dp.fb);
+ 
+     dev->sp.rsp_task_locked = 0;
++    /* a state keeps no pending SP interrupt: a queued SP event raises one under INTR_BREAK, as
++     * libultra's tasks set it */
++    dev->sp.rsp_intr_pending = get_event(&dev->r4300.cp0.q, SP_INT) != NULL
++        && (dev->sp.regs[SP_STATUS_REG] & SP_STATUS_INTR_BREAK) != 0;
++    /* a state keeps no mark of the header: one of type 1 stands as a graphics task's */
++    dev->sp.task_header = 1;
++    dev->sp.gfx_task = 0;
+     dev->r4300.cp0.interrupt_unsafe_state = 0;
+ 
+     *r4300_cp0_last_addr(&dev->r4300.cp0) = *r4300_pc(&dev->r4300);
+@@ -1254,6 +1261,12 @@ static int savestates_load_pj64(struct device* dev,
+     poweron_flashram(&dev->cart.flashram);
+ 
+     dev->sp.rsp_task_locked = 0;
++    /* a state keeps no pending SP interrupt: a queued SP event raises one under INTR_BREAK, as
++     * libultra's tasks set it */
++    dev->sp.rsp_intr_pending = get_event(&dev->r4300.cp0.q, SP_INT) != NULL
++        && (dev->sp.regs[SP_STATUS_REG] & SP_STATUS_INTR_BREAK) != 0;
++    dev->sp.task_header = 1;
++    dev->sp.gfx_task = 0;
+     dev->r4300.cp0.interrupt_unsafe_state = 0;
+ 
+     /* extra fb state */
