@@ -1,5 +1,6 @@
 # From a cold boot into an exhibition single match, The Rock against a CPU
-# The Rock, and 25 seconds past the bell, with a picture each 5 seconds.
+# The Rock, and 25 seconds past the bell, with a picture each 5 seconds and a
+# profile of the 25 seconds.
 run 400          # the legal screen is up
 press start 6    # skips the intro
 run 494
@@ -22,6 +23,7 @@ press start 6    # starts the entrances
 run 2600
 shot bell
 expect u8 game_mode 1
+profile
 run 300
 shot m0300
 run 300

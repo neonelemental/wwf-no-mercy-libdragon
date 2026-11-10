@@ -36,7 +36,7 @@ CFLAGS  := -march=vr4300 -mtune=vr4300 -mfix4300 -G0 -O2 -mno-abicalls -fno-pic 
 
 TESTS := $(patsubst %/Makefile,%,$(wildcard tests/*/Makefile))
 
-.PHONY: tests $(TESTS) harness play extract match source check clean FORCE
+.PHONY: tests $(TESTS) harness play profile extract match source check clean FORCE
 tests: $(TESTS)
 
 $(TESTS): libdragon
@@ -62,6 +62,17 @@ play: harness
 	cp -r $(PLAY)/save $(PLAY)/played
 	$(HARNESS) $(OUT)/nomercy.z64 $(SCRIPTS)/menu.txt $(PLAY) $(PLAY)/save
 	diff -rq $(PLAY)/played $(PLAY)/save || { echo "the boot changed the save of the match" >&2; exit 1; }
+
+# Plays 25 seconds of a match on the ROM of the variant and writes what each
+# routine costs in a game frame. The game's idle thread loops in IDLE.
+PROFILE := $(OUT)/profile
+IDLE    := func_800004D0
+
+profile: harness
+	rm -rf $(PROFILE)
+	$(HARNESS) $(OUT)/nomercy.z64 $(SCRIPTS)/long.txt $(PROFILE)
+	python3 tools/profile.py symbol_addrs.txt $(OUT)/nomercy.elf $(PROFILE)/profile.txt $(IDLE) > $(PROFILE)/table.txt
+	head -n 24 $(PROFILE)/table.txt
 
 # Splits baserom.z64 into build/split/; splat refuses a dump with another SHA1.
 extract: $(SPLIT)/.done

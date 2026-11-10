@@ -67,6 +67,7 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make tests` | builds libdragon into `build/libdragon/` and each test ROM into `tests/NAME/build/NAME.z64` |
 | `make harness` | builds the test harness of `tests/tools` into `build/harness/release/harness` |
 | `make play` | plays `build/source/nomercy.z64` in the harness: a boot, a match and a boot on the save of the match. `make play VARIANT=match` plays the retail image |
+| `make profile` | plays 25 seconds of a match on `build/source/nomercy.z64` and writes what each routine costs in a game frame to `build/source/profile/table.txt`. `make profile VARIANT=match` profiles the retail image |
 | `make source CHECK=NAME` | builds `build/check/`, which runs the assembly of the lifted routine NAME beside our C; `make play CHECK=NAME` plays it |
 | `make clean` | removes everything the build wrote |
 
@@ -134,7 +135,8 @@ and reads the game's memory by the symbols of the ELF beside the ROM:
     build/harness/release/harness build/source/nomercy.z64 tests/tools/scripts/match.txt build/play
 
 Of `tests/tools/scripts/`, `menu.txt` boots to the main menu, `match.txt`
-goes on into a single match, and `long.txt` plays 25 seconds of that match. `tests/tools/src/main.rs` lists the commands of a
+goes on into a single match, and `long.txt` plays 25 seconds of that match
+and profiles them. `tests/tools/src/main.rs` lists the commands of a
 script. A run fails when libdragon stops the game for a fault or a failed
 assert, when the game reads or writes outside RDRAM through the cache, which
 stops the CPU of a console, when the game shows no new picture for 10 seconds
@@ -151,6 +153,42 @@ argument names a directory that keeps the save from one run to the next.
 `make play` uses it: the first boot formats the save, the match must write to
 it, and the last boot must leave the save of the match as it is, which a boot
 that could not read it does not.
+
+`make profile` plays `long.txt`. From the `profile` line of a script to its
+end, the emulator counts each instruction that the CPU runs, each cache miss
+and each jump, and `tools/profile.py` writes the table from the counts. The
+table has a row for each routine that ran, the slowest first: its calls, its
+time, the lines of code and of data that the caches lacked, and the dirty
+lines of data written back, alone and with what it calls. Each number is for
+one game frame, which is one new picture: two frames of the harness in a
+match. The first line gives the sum of a game frame.
+
+The time is a model of the VR4300 at 93.75 MHz. An instruction takes its
+cycles in the pipeline: 1 for most, 5 for a float multiply, 29 for a float
+divide or root. The caches are those of the console: 16 KB of instructions
+in lines of 32 bytes and 8 KB of data in lines of 16 bytes, each direct
+mapped. A line of instructions that the cache lacks costs 48 cycles, and a
+line of data, or a dirty line written back, costs 40. For the retail game in
+a single match the model gives 24.7 ms of CPU a game frame, where a console
+measured 27.9 ms.
+
+The model leaves out:
+
+- the cycle that a load costs when the next instruction uses its value, and
+  the cycles that an exception costs;
+- the RSP and the RDP, and the time that the CPU waits while they hold the
+  bus;
+- the time of a read or a write of a device register, which counts as one
+  cycle;
+- the threads: a routine has one row, whichever threads run it;
+- the timing of a console. The emulator gives each instruction the same
+  time, so an interrupt does not come where the time of the model puts it.
+  The loop of the game's idle thread runs for what the emulator leaves of a
+  frame, so the sum leaves it out and names it on the second line.
+
+A routine's cost with what it calls is a share: the cost of a routine goes
+to its callers by their calls of it, which is right when each call costs the
+same.
 
 `tests/hello` is a ROM that prints `hello from libdragon`. `tests/boot` starts
 libdragon from the IPL3 of `baserom.z64`; it runs nine threads and prints
