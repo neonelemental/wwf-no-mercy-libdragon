@@ -199,6 +199,13 @@ A routine's cost with what it calls is a share: the cost of a routine goes
 to its callers by their calls of it, which is right when each call costs the
 same.
 
+A run is one match, and no two builds play the same one. The emulator's clock
+counts instructions, so a build with other code takes each interrupt at
+another place, and the match goes another way: other moves, other sounds,
+other reads of the cartridge. For that alone two runs differ by about 0.3 ms
+a game frame. To compare two builds, take a routine's cost for each call, or
+the mean of runs on scripts that wait a few frames more before the match.
+
 `tests/hello` is a ROM that prints `hello from libdragon`. `tests/boot` starts
 libdragon from the IPL3 of `baserom.z64`; it runs nine threads and prints
 what they count. `tests/kernel` runs libultra's
