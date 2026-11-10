@@ -1,0 +1,27 @@
+# libultra's VI manager and VI calls, which src/dragon/vi gives on libdragon's
+# vi.c. A label with no name is a routine of the same name there, or a part
+# of one.
+
+# The manager, its thread and the retrace.
+osCreateViManager
+func_80038050
+func_800380A4
+func_800381C8
+func_800384B0
+func_80038538
+func_800385CC
+func_80038600
+func_8003E600
+func_8003E694
+func_8003E710
+
+# The calls.
+osViSetEvent
+osViSetMode
+osViSetSpecialFeatures
+osViSetYScale
+osViSwapBuffer
+osViBlack
+func_80038804
+osViGetCurrentFramebuffer
+osViGetNextFramebuffer

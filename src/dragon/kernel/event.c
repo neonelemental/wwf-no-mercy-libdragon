@@ -19,11 +19,11 @@ static void ai(void) { ultra_event(OS_EVENT_AI); }
 static void dp(void) { ultra_event(OS_EVENT_DP); }
 static void reset(void) { ultra_event(OS_EVENT_PRENMI); }
 
-// get_ticks keeps the time only when it runs often enough (time.c).
+// get_ticks keeps the time only when it runs often enough (time.c). The
+// retrace of src/dragon/vi posts event 7.
 static void vi(void)
 {
     get_ticks();
-    ultra_event(OS_EVENT_VI);
 }
 
 void ultra_start(void)

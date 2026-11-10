@@ -63,8 +63,8 @@ osGetTime
 osGetCount
 func_80037920 osSetTimer
 func_80037A00
-func_80037A50 __osTimerServicesInit
-func_80037AA4 __osTimerInterrupt
+func_80037A50
+func_80037AA4
 func_80037AC4
 func_80037BD0
 func_80037BE0

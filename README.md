@@ -20,7 +20,7 @@ The source variant plays a match in the harness's emulator and boots in ares
 | part | on libdragon |
 |---|---|
 | threads, messages, interrupts | yes |
-| video | no |
+| video | yes |
 | cartridge reads | yes |
 | controllers | yes |
 | RSP tasks | no |
