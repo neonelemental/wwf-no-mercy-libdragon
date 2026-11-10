@@ -4,3 +4,6 @@ func_800022D8 scene_project
 func_800023C8
 func_80002400 scene_sort
 func_800024F0
+func_80001AA4 scene_light
+func_80001B10 scene_light_walk
+func_80001D90
