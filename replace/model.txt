@@ -1,0 +1,5 @@
+# Routines of the model that our C gives (src/game/model.c), as a lift list
+# does. They are here because they wait for the cartridge, which the check of
+# a lift list cannot run twice.
+
+func_800132D8 anim_read

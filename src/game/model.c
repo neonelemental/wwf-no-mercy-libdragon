@@ -6,6 +6,19 @@ static const double ANGLE = 360.0 / 1024;
 // The last place that a pose gave whole. A short place is a step from it.
 extern float D_80069F10[3];
 
+// The joints of a pose, in the game's data: the order to make them in, and
+// the parent of each or 0 for a joint with a place of its own.
+extern s8 D_80047EF8[POSE_JOINTS];
+extern s8 D_80047F0C[POSE_JOINTS];
+// The share of the way to the next pose that a step moves.
+extern float D_8004800C[3];
+
+// Routines of the game that are still assembly.
+float func_80011270(float degrees);                              // brings an angle into -180 to 180
+float func_80011324(float from, float to);                       // the way from one angle to another
+float func_8000567C(float x);                                    // its size
+void func_80012B24(s32 slot);                                    // takes the next pose from the cartridge
+
 static u32 word(const u8 *p)
 {
     return (u32)p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
@@ -51,4 +64,41 @@ u8 *pose_read(u8 *data, float angle[3], float place[3])
         D_80069F10[2] = place[2];
     }
     return data;
+}
+
+void anim_read(s32 slot_word, s32 step_word)
+{
+    s16 slot = slot_word;
+    int step = (s16)step_word % 3;
+    float place[POSE_JOINTS][3];
+    float angle[POSE_JOINTS][3];
+
+    func_80012B24(slot);
+    Animation *anim = &D_80069F20[slot];
+    u8 *data = anim->data[anim->now];
+    for (int n = 1; n < POSE_JOINTS; n++) {
+        data = pose_read(data, angle[n], place[n]);
+    }
+    float *share = &D_8004800C[step];
+    for (int n = 1; n < POSE_JOINTS; n++) {
+        int j = D_80047EF8[n];
+        Joint *joint = &D_800A1130[slot][j];
+        float *turn = angle[j];
+        if (D_80047F0C[j] == 0) {
+            joint->place[0] = joint->place[0] + (place[j][0] - joint->place[0]) * *share;
+            joint->place[1] = joint->place[1] + (place[j][1] - joint->place[1]) * *share;
+            joint->place[2] = joint->place[2] + (place[j][2] - joint->place[2]) * *share;
+        }
+        turn[0] = func_80011324(joint->angle[0], turn[0]);
+        turn[1] = func_80011324(joint->angle[1], turn[1]);
+        turn[2] = func_80011324(joint->angle[2], turn[2]);
+        // Past 120 about x or z, both go by 180 less.
+        if (120.0 < (double)func_8000567C(turn[0]) || 120.0 < (double)func_8000567C(turn[2])) {
+            turn[0] = func_80011270(turn[0] + 180.0f);
+            turn[2] = func_80011270(turn[2] + 180.0f);
+        }
+        joint->angle[0] = joint->angle[0] + turn[0] * *share;
+        joint->angle[1] = joint->angle[1] + turn[1] * *share;
+        joint->angle[2] = joint->angle[2] + turn[2] * *share;
+    }
 }
