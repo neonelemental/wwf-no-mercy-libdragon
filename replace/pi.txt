@@ -1,0 +1,45 @@
+# libultra's PI manager and raw PI calls, which src/dragon/pi gives on
+# libdragon's DMA. A label with no name is a routine of the same name there,
+# or a part of one.
+
+# The manager thread, its jump table, and the two raw DMA calls that only it
+# reached.
+osCreatePiManager
+func_8002EFC0
+func_8002EFF0
+func_8002F318
+func_8002F354
+jtbl_800560F0
+func_8002EBB0
+func_8002ECF0
+func_8002ED74
+func_8002ED80
+func_8003D160
+func_8003D20C
+func_8003D218
+
+# The interrupt mask calls of the manager's disk drive path.
+func_8003D0D0
+func_8003D110
+
+# A request, and the queue that it goes to.
+osEPiStartDma
+func_8002EDD8
+func_8002EE24
+func_8003D230
+
+# The access queue.
+func_8002F380
+func_8002F3D4 __osPiGetAccess
+func_8002F440 __osPiRelAccess
+
+# The raw IO calls, which the flash routines reach through osEPiReadIo and
+# osEPiWriteIo.
+func_8003D250 osEPiRawReadIo
+func_8003D36C
+func_8003D3C0 osEPiRawWriteIo
+func_8003D4DC
+
+# The handles.
+osCartRomInit
+osDriveRomInit

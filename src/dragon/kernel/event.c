@@ -16,7 +16,6 @@ static void sp(void)
 }
 
 static void ai(void) { ultra_event(OS_EVENT_AI); }
-static void pi(void) { ultra_event(OS_EVENT_PI); }
 static void dp(void) { ultra_event(OS_EVENT_DP); }
 static void reset(void) { ultra_event(OS_EVENT_PRENMI); }
 
@@ -34,7 +33,6 @@ void ultra_start(void)
     register_SP_handler(sp);
     register_AI_handler(ai);
     register_VI_handler(vi);
-    register_PI_handler(pi);
     register_DP_handler(dp);
     register_RESET_handler(reset);
     osSetIntMask(OS_IM_ALL);
