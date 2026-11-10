@@ -1,0 +1,5 @@
+# From a cold boot to the title screen.
+run 400          # the legal screen is up
+press start 6    # skips the intro
+run 494
+shot title

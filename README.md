@@ -53,7 +53,7 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make match` | builds `build/match/nomercy.z64` and `nomercy.elf` |
 | `make check` | `make match`, then checks the SHA1 of the image |
 | `make tests` | builds libdragon into `build/libdragon/` and each test ROM into `tests/NAME/build/NAME.z64` |
-| `make harness` | builds `build/harness/release/harness` from `tests/tools`; `harness ROM FRAMES OUT.png` runs a ROM in the image's emulator for that many frames and saves the picture |
+| `make harness` | builds `build/harness/release/harness` from `tests/tools`; `harness ROM SCRIPT OUTDIR` runs a ROM in the image's emulator, presses the buttons of the script and saves its pictures. Of `tests/tools/scripts/`, `title.txt` goes to the title and `match.txt` into a single match |
 | `make clean` | removes everything the build wrote |
 
 `symbol_addrs.txt` names each routine of the main code, and `extra_addrs.txt`

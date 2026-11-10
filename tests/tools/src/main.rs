@@ -1,7 +1,12 @@
-//! Boots a ROM in mupen64plus, runs it for a number of frames and saves the
-//! picture of the last one.
+//! Boots a ROM in mupen64plus and plays a script on it.
 //!
-//!     harness ROM FRAMES OUT.png
+//!     harness ROM SCRIPT OUTDIR
+//!
+//! A script holds one command on each line, and `#` starts a comment:
+//!
+//!     run 400          run 400 frames
+//!     press start 6    hold Start for 6 frames, then let go; a+b holds both
+//!     shot title       save the picture as OUTDIR/title.png
 //!
 //! A frame is one vertical interrupt. The emulator finds two of its parts in
 //! this program by name: the input plugin, and the screen of the angrylion
@@ -12,7 +17,7 @@
 use std::ffi::{c_char, c_int, c_uint, c_ulong, c_void, CStr, CString};
 use std::path::PathBuf;
 use std::process::exit;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::time::Duration;
 use std::{env, fs, process, ptr, thread};
@@ -69,12 +74,24 @@ extern "C" {
 }
 const RTLD_NOW: c_int = 2;
 
-/// The run and the newest picture, as angrylion hands it over: RGBA rows of
-/// `width`, to be shown `height_out` rows tall.
+/// The buttons of controller 1, by their bits in m64p_plugin.h's BUTTONS.
+const BUTTONS: [&str; 14] =
+    ["right", "left", "down", "up", "start", "z", "b", "a", "cright", "cleft", "cdown", "cup", "r", "l"];
+
+enum Step {
+    Run { frames: u64, keys: u32 },
+    Shot(String),
+}
+
+/// The script, and the newest picture as angrylion hands it over: RGBA rows
+/// of `width`, to be shown `height_out` rows tall.
 struct Run {
-    target: u64,
+    steps: Vec<Step>,
+    /// The step that runs now, and the frames it has left.
+    step: usize,
+    left: u64,
     out: PathBuf,
-    saved: bool,
+    done: bool,
     pixels: Vec<u8>,
     width: usize,
     height: usize,
@@ -83,6 +100,7 @@ struct Run {
 
 static RUN: Mutex<Option<Run>> = Mutex::new(None);
 static FRAMES: AtomicU64 = AtomicU64::new(0);
+static KEYS: AtomicU32 = AtomicU32::new(0);
 
 fn fail(text: &str) -> ! {
     eprintln!("harness: {text}");
@@ -129,6 +147,55 @@ unsafe fn attach(core: *mut c_void, kind: c_int, name: &str) {
     let startup: extern "C" fn(*mut c_void, *mut c_void, Option<Message>) -> c_int = std::mem::transmute(startup);
     check(startup(core, ptr::null_mut(), Some(message)), name);
     check(CoreAttachPlugin(kind, plugin), name);
+}
+
+fn parse(script: &str) -> Result<Vec<Step>, String> {
+    let mut steps = Vec::new();
+    for (number, line) in script.lines().enumerate() {
+        let words: Vec<&str> = line.split('#').next().unwrap_or("").split_whitespace().collect();
+        let frames = |word: &str| word.parse::<u64>().ok().filter(|&frames| frames > 0);
+        let step = match words[..] {
+            [] => continue,
+            ["run", count] => frames(count).map(|frames| Step::Run { frames, keys: 0 }),
+            ["press", buttons, count] => frames(count).and_then(|frames| {
+                let bits = buttons.split('+').map(|name| BUTTONS.iter().position(|&button| button == name));
+                Some(Step::Run { frames, keys: bits.map(|bit| bit.map(|bit| 1 << bit)).sum::<Option<u32>>()? })
+            }),
+            ["shot", name] if !name.contains('/') => Some(Step::Shot(name.to_string())),
+            _ => None,
+        };
+        steps.push(step.ok_or_else(|| format!("line {}: {}", number + 1, line.trim()))?);
+    }
+    Ok(steps)
+}
+
+impl Run {
+    /// Saves the pictures that the script asks for here, then holds the keys
+    /// of the next run. With no run left, the script is done.
+    fn next(&mut self, frame: u64) {
+        while let Some(step) = self.steps.get(self.step) {
+            match step {
+                Step::Run { frames, keys } => {
+                    self.left = *frames;
+                    KEYS.store(*keys, Ordering::Relaxed);
+                    return;
+                }
+                Step::Shot(name) => {
+                    if self.width == 0 || self.height_out == 0 {
+                        fail(&format!("no picture by frame {frame}"));
+                    }
+                    let path = self.out.join(format!("{name}.png"));
+                    if let Err(error) = fs::write(&path, png(self)) {
+                        fail(&format!("{}: {error}", path.display()));
+                    }
+                    println!("frame {frame}: {}", path.display());
+                    self.step += 1;
+                }
+            }
+        }
+        KEYS.store(0, Ordering::Relaxed);
+        self.done = true;
+    }
 }
 
 fn chunk(png: &mut Vec<u8>, kind: &[u8; 4], data: &[u8]) {
@@ -225,22 +292,24 @@ pub unsafe extern "C" fn vdac_sync(_valid: bool) {
     }
     let mut guard = RUN.lock().unwrap();
     let run = guard.as_mut().unwrap();
-    if frame != run.target {
+    if run.done {
         return;
     }
-    if run.width == 0 || run.height_out == 0 {
-        fail(&format!("no picture by frame {frame}"));
+    run.left -= 1;
+    if run.left > 0 {
+        return;
     }
-    if let Err(error) = fs::write(&run.out, png(run)) {
-        fail(&format!("{}: {error}", run.out.display()));
-    }
-    run.saved = true;
+    run.step += 1;
+    run.next(frame);
+    let done = run.done;
     drop(guard);
-    CoreDoCommand(CMD_STOP, 0, ptr::null_mut());
+    if done {
+        CoreDoCommand(CMD_STOP, 0, ptr::null_mut());
+    }
 }
 
-// The input plugin (m64p_plugin.h): one standard controller with no pak, and
-// no button held.
+// The input plugin (m64p_plugin.h): one standard controller with no pak,
+// which holds the keys of the script.
 
 #[repr(C)]
 pub struct Control {
@@ -282,8 +351,8 @@ pub unsafe extern "C" fn InitiateControllers(info: ControlInfo) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn GetKeys(_control: c_int, keys: *mut u32) {
-    *keys = 0;
+pub unsafe extern "C" fn GetKeys(control: c_int, keys: *mut u32) {
+    *keys = if control == 0 { KEYS.load(Ordering::Relaxed) } else { 0 };
 }
 
 #[no_mangle]
@@ -308,21 +377,21 @@ pub extern "C" fn SDL_KeyUp(_modifiers: c_int, _key: c_int) {}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let target = args.get(2).and_then(|frames| frames.parse::<u64>().ok()).filter(|&frames| frames > 0);
-    let (Some(target), 4) = (target, args.len()) else {
-        eprintln!("usage: harness ROM FRAMES OUT.png");
+    if args.len() != 4 {
+        eprintln!("usage: harness ROM SCRIPT OUTDIR");
         exit(2)
-    };
-    let rom = fs::read(&args[1]).unwrap_or_else(|error| fail(&format!("{}: {error}", args[1])));
-    *RUN.lock().unwrap() = Some(Run {
-        target,
-        out: PathBuf::from(&args[3]),
-        saved: false,
-        pixels: Vec::new(),
-        width: 0,
-        height: 0,
-        height_out: 0,
-    });
+    }
+    let read = |path: &String| fs::read(path).unwrap_or_else(|error| fail(&format!("{path}: {error}")));
+    let rom = read(&args[1]);
+    let steps = parse(&String::from_utf8_lossy(&read(&args[2]))).unwrap_or_else(|line| fail(&format!("{}, {line}", args[2])));
+    let out = PathBuf::from(&args[3]);
+    fs::create_dir_all(&out).unwrap_or_else(|error| fail(&format!("{}: {error}", args[3])));
+    let mut run = Run { steps, step: 0, left: 0, out, done: false, pixels: Vec::new(), width: 0, height: 0, height_out: 0 };
+    run.next(0);
+    if run.done {
+        fail(&format!("{} runs no frames", args[2]));
+    }
+    *RUN.lock().unwrap() = Some(run);
 
     // The core keeps its settings and the game's save here; each run starts with neither.
     let work = env::temp_dir().join(format!("harness-{}", process::id()));
@@ -370,8 +439,9 @@ fn main() {
     }
 
     let _ = fs::remove_dir_all(&work);
-    if !RUN.lock().unwrap().as_ref().unwrap().saved {
-        fail(&format!("the emulator stopped at frame {}, before frame {target}", FRAMES.load(Ordering::Relaxed)));
+    let frames = FRAMES.load(Ordering::Relaxed);
+    if !RUN.lock().unwrap().as_ref().unwrap().done {
+        fail(&format!("the emulator stopped at frame {frames}, before the end of {}", args[2]));
     }
-    println!("{} frames, picture in {}", target, args[3]);
+    println!("{frames} frames");
 }
