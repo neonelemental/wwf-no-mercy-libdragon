@@ -69,7 +69,7 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make tests` | builds libdragon into `build/libdragon/` and each test ROM into `tests/NAME/build/NAME.z64` |
 | `make harness` | builds the test harness of `tests/tools` into `build/harness/release/harness` |
 | `make play` | plays `build/source/nomercy.z64` in the harness: a boot, a match and a boot on the save of the match. `make play VARIANT=match` plays the retail image |
-| `make profile` | plays 25 seconds of a match on `build/source/nomercy.z64` and writes what each routine costs in a game frame to `build/source/profile/table.txt`. `make profile VARIANT=match` profiles the retail image |
+| `make profile` | plays 25 seconds of a match on `build/source/nomercy.z64` and writes what each routine costs in a game frame to `build/source/profile/table.txt`. `make profile VARIANT=match` profiles the retail image, and `SCRIPT=tag` a tag match |
 | `make source CHECK=NAME` | builds `build/check/`, which runs the assembly of the lifted routine NAME beside our C; `make play CHECK=NAME` plays it |
 | `make clean` | removes everything the build wrote |
 
@@ -141,7 +141,8 @@ and reads the game's memory by the symbols of the ELF beside the ROM:
 
 Of `tests/tools/scripts/`, `menu.txt` boots to the main menu, `match.txt`
 goes on into a single match, and `long.txt` plays 25 seconds of that match
-and profiles them. `tests/tools/src/main.rs` lists the commands of a
+and profiles them. `tag.txt` does the same in a tag match, with four
+wrestlers. `tests/tools/src/main.rs` lists the commands of a
 script. A run fails when libdragon stops the game for a fault or a failed
 assert, when the game reads or writes outside RDRAM through the cache, which
 stops the CPU of a console, when the game shows no new picture for 10 seconds
@@ -159,9 +160,10 @@ argument names a directory that keeps the save from one run to the next.
 it, and the last boot must leave the save of the match as it is, which a boot
 that could not read it does not.
 
-`make profile` plays `long.txt`. From the `profile` line of a script to its
-end, the emulator counts each instruction that the CPU runs, each cache miss
-and each jump, and `tools/profile.py` writes the table from the counts. The
+`make profile` plays `long.txt`, or `tag.txt` with `SCRIPT=tag`, and writes
+the table to the same place. From the `profile` line of a script to its end,
+the emulator counts each instruction that the CPU runs, each cache miss and
+each jump, and `tools/profile.py` writes the table from the counts. The
 table has a row for each routine that ran, the slowest first: its calls, its
 time, the lines of code and of data that the caches lacked, and the dirty
 lines of data written back, alone and with what it calls. Each number is for
@@ -175,7 +177,7 @@ in lines of 32 bytes and 8 KB of data in lines of 16 bytes, each direct
 mapped. A line of instructions that the cache lacks costs 48 cycles, and a
 line of data, or a dirty line written back, costs 40. For the retail game in
 a single match the model gives 24.7 ms of CPU a game frame, where a console
-measured 27.9 ms.
+measured 27.9 ms. In a tag match it gives 31.6 ms.
 
 The model leaves out:
 

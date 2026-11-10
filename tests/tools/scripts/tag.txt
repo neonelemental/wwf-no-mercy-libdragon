@@ -1,0 +1,43 @@
+# From a cold boot into an exhibition tag match, The Rock and a CPU The Rock
+# against two more, and 25 seconds past the bell, with a picture each 5
+# seconds and a profile of the 25 seconds.
+run 400          # the legal screen is up
+press start 6    # skips the intro
+run 494
+shot title
+press start 6    # the Rumble Pak notice
+run 200
+press a 6
+run 200
+shot menu        # Multi Play, on Exhibition
+press a 6        # Single Match
+run 100
+press down 6     # Tag Match
+run 100
+press start 6    # Decision
+run 1200
+press a 6        # player 1 takes The Rock
+run 150
+press a 6        # and so does each CPU
+run 150
+press a 6
+run 150
+press a 6
+run 150
+shot card
+press start 6    # starts the entrances
+run 4600
+shot bell
+expect u8 game_mode 1
+profile
+run 300
+shot m0300
+run 300
+shot m0600
+run 300
+shot m0900
+run 300
+shot m1200
+run 300
+shot m1500
+read u8 game_mode
