@@ -21,5 +21,6 @@ shot card
 press start 6    # starts the entrances
 run 2600
 shot bell
+expect u8 game_mode 1    # the match
 run 300
 shot match

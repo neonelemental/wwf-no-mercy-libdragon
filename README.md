@@ -57,7 +57,8 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make clean` | removes everything the build wrote |
 
 `symbol_addrs.txt` names each routine of the main code, and `extra_addrs.txt`
-names each other address that a word points to. `reloc_addrs.txt` gives each
+names each other address that a word points to, and each variable that the
+harness reads. `reloc_addrs.txt` gives each
 word that holds an address its symbol, and the word moves with the code. It
 gives `MIPS_NONE` to each word that is a number. With no pad, the game code of
 the source variant sits where it sits in the retail image. The variant boots
@@ -65,15 +66,18 @@ from `src/boot/boot.S`, which loads libdragon, built at o32 and placed at rom
 0x2000000, into the Expansion Pak. With a pad of 0x40 or 0x100, it boots
 through the title to the front end and plays sound.
 
-The harness runs a ROM in the image's emulator, presses the buttons of a
-script and saves the pictures that the script asks for:
+The harness runs a ROM in the image's emulator, as `make` runs there. It
+presses the buttons of a script, saves the pictures that the script asks for,
+and reads the game's memory by the symbols of the ELF beside the ROM:
 
     build/harness/release/harness build/source/nomercy.z64 tests/tools/scripts/match.txt build/play
 
 Of `tests/tools/scripts/`, `menu.txt` boots to the main menu and `match.txt`
-goes on into a single match. A run fails when the game shows no new picture
-for 10 seconds or plays no sound for 30, and when the script ends without
-both in its last second. It then prints where the CPU is and saves the last
+goes on into a single match. `tests/tools/src/main.rs` lists the commands of a
+script. A run fails when a thread of libultra faults, when the game shows no
+new picture for 10 seconds or plays no sound for 30, when a value that the
+script expects is another, and when the script ends without a picture and a
+sound in its last second. It then prints where the CPU is and saves the last
 picture as `failed.png`.
 
 `tests/hello` is a ROM that prints `hello from libdragon`. `tests/boot` starts

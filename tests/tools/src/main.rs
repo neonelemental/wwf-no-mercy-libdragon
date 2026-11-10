@@ -7,10 +7,15 @@
 //!     run 400          run 400 frames
 //!     press start 6    hold Start for 6 frames, then let go; a+b holds both
 //!     shot title       save the picture as OUTDIR/title.png
+//!     read u8 game_mode        print the u8, u16 or u32 at a symbol
+//!     expect u8 game_mode 1    fail the run when it holds another value
 //!
-//! The run fails when the game shows no new picture for 10 seconds or plays
-//! no sound for 30, and when the script ends without both in its last second.
-//! It then prints where the CPU is and saves the picture as OUTDIR/failed.png.
+//! The symbols are those of the ELF beside the ROM, ROM.elf for ROM.z64.
+//!
+//! The run fails when a thread of libultra faults, when the game shows no new
+//! picture for 10 seconds or plays no sound for 30, and when the script ends
+//! without both in its last second. It then prints where the CPU is and saves
+//! the picture as OUTDIR/failed.png.
 //!
 //! A frame is one vertical interrupt. The emulator finds two of its parts in
 //! this program by name: the input plugin, and the screen of the angrylion
@@ -19,7 +24,7 @@
 #![allow(non_snake_case, non_upper_case_globals)]
 
 use std::ffi::{c_char, c_int, c_uint, c_ulong, c_void, CStr, CString};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Mutex;
@@ -115,6 +120,7 @@ impl Watch {
 enum Step {
     Run { frames: u64, keys: u32 },
     Shot(String),
+    Read { name: String, address: u32, bytes: u32, expect: Option<u32> },
 }
 
 /// The script, and the newest picture as angrylion hands it over: RGBA rows
@@ -132,6 +138,8 @@ struct Run {
     height_out: usize,
     picture: Watch,
     sound: Watch,
+    /// Where libultra keeps the thread that faulted, when the ELF names it.
+    faulted: Option<u32>,
 }
 
 static RUN: Mutex<Option<Run>> = Mutex::new(None);
@@ -185,7 +193,46 @@ unsafe fn attach(core: *mut c_void, kind: c_int, name: &str) {
     check(CoreAttachPlugin(kind, plugin), name);
 }
 
-fn parse(script: &str) -> Result<Vec<Step>, String> {
+/// The address of a symbol of a 32-bit big-endian ELF.
+fn symbol(elf: &[u8], name: &str) -> Option<u32> {
+    let word = |at: usize| Some(u32::from_be_bytes(elf.get(at..at + 4)?.try_into().ok()?) as usize);
+    let half = |at: usize| Some(u16::from_be_bytes(elf.get(at..at + 2)?.try_into().ok()?) as usize);
+    let (sections, size, count) = (word(0x20)?, half(0x2e)?, half(0x30)?);
+    for section in (0..count).map(|index| sections + index * size) {
+        if word(section + 4)? != 2 {
+            continue;
+        }
+        let (symbols, len) = (word(section + 0x10)?, word(section + 0x14)?);
+        let strings = word(sections + word(section + 0x18)? * size + 0x10)?;
+        for entry in (symbols..symbols + len).step_by(16) {
+            let text = elf.get(strings + word(entry)?..)?;
+            if text.starts_with(name.as_bytes()) && text.get(name.len()) == Some(&0) {
+                return Some(word(entry + 4)? as u32);
+            }
+        }
+    }
+    None
+}
+
+/// The number that the game holds in `bytes` bytes at a KSEG0 address.
+unsafe fn peek(address: u32, bytes: u32) -> Option<u32> {
+    let rdram = DebugMemGetPointer(PTR_RDRAM) as *const u32;
+    let from = address.checked_sub(0x8000_0000)? as usize;
+    if from + bytes as usize > RDRAM_WORDS * 4 {
+        return None;
+    }
+    Some((from..from + bytes as usize).fold(0, |value, at| value << 8 | *rdram.add(at / 4) >> (24 - 8 * (at % 4)) & 0xff))
+}
+
+fn parse(script: &str, elf: Option<&[u8]>) -> Result<Vec<Step>, String> {
+    let value_of = |word: &str| match word.strip_prefix("0x") {
+        Some(hex) => u32::from_str_radix(hex, 16).ok(),
+        None => word.parse().ok(),
+    };
+    let read = |kind: &str, name: &str, expect: Option<u32>| {
+        let bytes = ["u8", "u16", "", "u32"].iter().position(|&width| width == kind)? as u32 + 1;
+        Some(Step::Read { name: name.to_string(), address: symbol(elf?, name)?, bytes, expect })
+    };
     let mut steps = Vec::new();
     for (number, line) in script.lines().enumerate() {
         let words: Vec<&str> = line.split('#').next().unwrap_or("").split_whitespace().collect();
@@ -198,6 +245,8 @@ fn parse(script: &str) -> Result<Vec<Step>, String> {
                 Some(Step::Run { frames, keys: bits.map(|bit| bit.map(|bit| 1 << bit)).sum::<Option<u32>>()? })
             }),
             ["shot", name] if !name.contains('/') => Some(Step::Shot(name.to_string())),
+            ["read", kind, name] => read(kind, name, None),
+            ["expect", kind, name, value] => value_of(value).and_then(|value| read(kind, name, Some(value))),
             _ => None,
         };
         steps.push(step.ok_or_else(|| format!("line {}: {}", number + 1, line.trim()))?);
@@ -242,6 +291,12 @@ impl Run {
         let (buffer, len) = (*ai & 0xff_ffff, *ai.add(1));
         self.picture.saw(origin, origin.abs_diff(self.picture.last) > 0x1000);
         self.sound.saw(buffer, buffer != self.sound.last && loudest(buffer, len) > 0);
+        // OSThread keeps the pc, cause and badvaddr of its exception from 0x11C.
+        if let Some(thread) = self.faulted.and_then(|at| peek(at, 4)).filter(|&thread| thread != 0) {
+            let saved = |at| peek(thread + at, 4).unwrap_or(0);
+            let (pc, cause, badvaddr) = (saved(0x11c), saved(0x120), saved(0x124));
+            self.stopped(frame, &format!("a thread faulted at pc {pc:08x}, cause {cause:08x} badvaddr {badvaddr:08x}"));
+        }
         if self.picture.quiet >= STILL {
             self.stopped(frame, &format!("no new picture for {STILL} frames"));
         }
@@ -252,7 +307,7 @@ impl Run {
 
     /// Saves the pictures that the script asks for here, then holds the keys
     /// of the next run. With no run left, the script is done.
-    fn next(&mut self, frame: u64) {
+    unsafe fn next(&mut self, frame: u64) {
         while let Some(step) = self.steps.get(self.step) {
             match step {
                 Step::Run { frames, keys } => {
@@ -269,6 +324,17 @@ impl Run {
                         fail(&format!("{}: {error}", path.display()));
                     }
                     println!("frame {frame}: {}", path.display());
+                    self.step += 1;
+                }
+                Step::Read { name, address, bytes, expect } => {
+                    if frame == 0 {
+                        fail(&format!("{name} is read before the first run"));
+                    }
+                    let value = peek(*address, *bytes).unwrap_or_else(|| fail(&format!("{name} is not in RDRAM")));
+                    println!("frame {frame}: {name} = {value:#x}");
+                    if expect.is_some_and(|expect| expect != value) {
+                        self.stopped(frame, &format!("{name} is {value:#x}, not {:#x}", expect.unwrap()));
+                    }
                     self.step += 1;
                 }
             }
@@ -470,7 +536,9 @@ fn main() {
     }
     let read = |path: &String| fs::read(path).unwrap_or_else(|error| fail(&format!("{path}: {error}")));
     let rom = read(&args[1]);
-    let steps = parse(&String::from_utf8_lossy(&read(&args[2]))).unwrap_or_else(|line| fail(&format!("{}, {line}", args[2])));
+    let elf = fs::read(Path::new(&args[1]).with_extension("elf")).ok();
+    let steps = parse(&String::from_utf8_lossy(&read(&args[2])), elf.as_deref())
+        .unwrap_or_else(|line| fail(&format!("{}, {line}", args[2])));
     let out = PathBuf::from(&args[3]);
     fs::create_dir_all(&out).unwrap_or_else(|error| fail(&format!("{}: {error}", args[3])));
     let mut run = Run {
@@ -485,8 +553,9 @@ fn main() {
         height_out: 0,
         picture: Watch::default(),
         sound: Watch::default(),
+        faulted: elf.as_deref().and_then(|elf| symbol(elf, "__osFaultedThread")),
     };
-    run.next(0);
+    unsafe { run.next(0) };
     if run.done {
         fail(&format!("{} runs no frames", args[2]));
     }
