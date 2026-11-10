@@ -24,12 +24,24 @@ extern float D_80047FB8[], D_80047FCC[];
 // The share of the way to the next pose that a step moves.
 extern float D_8004800C[3];
 
+// The slot before D_8009FDE0 stands D_800A9352 higher.
+extern u16 D_8009FDE0, D_800A9352;
+
 // Routines of the game that are still assembly.
 void func_80010FC4(Matrix m, float x, float y, float z);        // sets the place of a matrix
 float func_80011270(float degrees);                              // brings an angle into -180 to 180
 float func_80011324(float from, float to);                       // the way from one angle to another
 float func_8000567C(float x);                                    // its size
+void func_80036140(Matrix m, float x, float y, float z);        // a rotation by three angles
+void func_80002268(ModelNode *node);                             // the node walk
+s32 func_80011A54(s32 file);                                     // the frames of a file
+void func_80017160(s32 slot, s32 value);
+void func_80012A8C(s32 slot, s32 file);                          // starts the read of a file
 void func_80012B24(s32 slot);                                    // takes the next pose from the cartridge
+void func_80013EB0(s32 slot);                                    // stops the sounds of a slot
+void func_80013234(s32 slot);                                    // puts the pose in the joints as it is
+void func_80012F48(s32 slot, s32 frame, s32 flags);              // eases from the last file
+void func_80013860(s32 slot, s32 frame);                         // the events of a frame
 
 static u32 word(const u8 *p)
 {
@@ -154,5 +166,138 @@ void joint_chain(s32 slot_word)
         joint->last_angle[0] = ax;
         joint->last_angle[1] = ay;
         joint->last_angle[2] = az;
+    }
+}
+
+// An angle of 4096 to a turn, in whole degrees.
+static s32 degrees(u32 angle)
+{
+    return (s32)(angle * 360) / 4096 % 4096;
+}
+
+void model_update(s32 slot_word, s32 file_word, s32 frame_word, ModelPlace *at, float *look, s32 flags_word, s32 lean_x, s32 lean_z)
+{
+    s16 slot = slot_word;
+    s16 file = file_word;
+    u16 frame = frame_word;
+    u8 flags = flags_word;
+    Animation *anim = &D_80069F20[slot];
+    Joint *joints = D_800A1130[slot];
+    ModelNode *nodes = D_80091CC0[slot];
+    Matrix root, about_y, leaning;
+    float kept[3];
+    int moved = 0, posed = 0;
+
+    s16 lift = 0;
+    if (slot == D_8009FDE0 - 1) {
+        lift = D_800A9352;
+    }
+    float about_x = 0.0f, about_z = 0.0f;
+    if (lean_x != 0) {
+        about_x = (float)degrees(0x1000 - (u32)lean_x);
+    }
+    if (lean_z != 0) {
+        about_z = (float)degrees((u32)lean_z + 0x1000);
+    }
+    float turn = -(float)((double)(s32)((u32)at->turn + 0x800) * (360.0 / 4096));
+
+    if (file != anim->file) {
+        anim->frame = -1;
+        frame = 0;
+        func_80017160(slot, 0);
+    }
+    if (frame == 0 && anim->frame != 0) {
+        anim->same_file = file == anim->file;
+        func_80012A8C(slot, file);
+        func_80013EB0(slot);
+        u8 fresh = anim->fresh;
+        anim->file = file;
+        if (!fresh) {
+            // Where the wrestler was, to stay there under the new file.
+            kept[0] = joints[1].world[0];
+            kept[1] = joints[1].world[1];
+            kept[2] = joints[1].world[2];
+            moved = 1;
+        }
+    }
+    if ((s16)frame != anim->frame) {
+        anim->frame = frame;
+        if ((s16)frame < (s16)func_80011A54(file)) {
+            // An even frame is a pose of the file, and so is its last one. An
+            // odd frame is half the way to the next pose.
+            if ((frame & 1) && (s16)frame != (s16)func_80011A54(file) - 1) {
+                anim_read(slot, 0);
+            } else {
+                func_80013234(slot);
+                if ((s16)frame == (s16)func_80011A54(file) - 2) {
+                    func_80012B24(slot);
+                }
+            }
+            if (flags & 2) {
+                if ((anim->fresh == 0) & ((s16)frame < 5) && anim->same_file == 0) {
+                    func_80012F48(slot, (s16)frame, (s8)flags);
+                }
+            }
+            if (look) {
+                joints[5].angle[0] = (float)((double)look[0] + 180.0);
+                float y = look[1];
+                joints[5].angle[2] = 180.0f;
+                joints[5].angle[1] = y;
+            }
+            joint_chain(slot);
+            posed = 1;
+        }
+    }
+
+    if ((flags & 1) && moved) {
+        // The first joint under the new file, and the wrestler back by as far as it moved.
+        ModelNode *node = &nodes[1];
+        Joint *joint = &joints[1];
+        mtx_rotate_y(about_y, turn);
+        func_80036140(leaning, about_x, 0.0f, about_z);
+        mtx_mul(leaning, about_y, root);
+        func_80010FC4(root, joints[0].place[0], joints[0].place[1], joints[0].place[2]);
+        mtx_mul(anim->base, root, node->parent->world);
+        mtx_mul(node->local, node->parent->world, node->world);
+        guMtxXFMF(node->world, joint->point[0], joint->point[1], joint->point[2],
+            &joint->world[0], &joint->world[1], &joint->world[2]);
+        joint->world[0] = -joint->world[0];
+        at->x = at->x + (kept[0] - joint->world[0]);
+        at->z = at->z + (kept[2] - joint->world[2]);
+        if (flags & 8) {
+            at->y = at->y + (kept[1] - joint->world[1]);
+        }
+    }
+
+    joints[0].place[0] = -at->x;
+    joints[0].place[1] = at->y + (float)lift;
+    joints[0].place[2] = at->z;
+    mtx_rotate_y(about_y, turn);
+    func_80036140(leaning, about_x, 0.0f, about_z);
+    mtx_mul(leaning, about_y, root);
+    func_80010FC4(root, joints[0].place[0], joints[0].place[1], joints[0].place[2]);
+    mtx_mul(anim->base, root, nodes[0].local);
+    func_80002268(&nodes[0]);
+    joints[0].heading = turn;
+    // Two points of each bone, for the routines that read the bones later.
+    for (int n = 1; n < MODEL_JOINTS; n++) {
+        if (n == 20 || n == 21) {
+            continue;
+        }
+        Joint *joint = &joints[n];
+        ModelNode *node = &nodes[n];
+        joint->heading = joint->angle[1] + turn;
+        guMtxXFMF(node->world, joint->point[0], joint->point[1], joint->point[2],
+            &joint->world[0], &joint->world[1], &joint->world[2]);
+        joint->world[0] = -joint->world[0];
+        guMtxXFMF(node->world, joint->point2[0], joint->point2[1], joint->point2[2],
+            &joint->world2[0], &joint->world2[1], &joint->world2[2]);
+        joint->world2[0] = -joint->world2[0];
+    }
+    if (posed) {
+        func_80013860(slot, (s16)(frame + 1));
+    }
+    if (anim->fresh) {
+        anim->fresh = 0;
     }
 }

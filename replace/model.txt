@@ -3,3 +3,7 @@
 # a lift list cannot run twice.
 
 func_800132D8 anim_read
+func_80012130 model_update
+func_80012208
+func_80012260
+func_80012464

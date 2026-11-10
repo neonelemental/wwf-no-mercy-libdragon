@@ -1,5 +1,5 @@
-// The model of a wrestler: its pose from the animation data, and the matrix
-// of each joint.
+// The model of a wrestler: its pose from the animation data, the matrix of
+// each joint, and the points of each bone in the world.
 
 #ifndef GAME_MODEL_H
 #define GAME_MODEL_H
@@ -89,6 +89,14 @@ ULTRA_AT(Animation, read, 0x88);
 
 extern Animation D_80069F20[MODEL_SLOTS];
 
+// Where a wrestler stands, and its angle about y, 4096 to a turn.
+typedef struct {
+    float x, y, z;
+    s32 turn;
+} ModelPlace;
+
+ULTRA_SIZE(ModelPlace, 0x10);
+
 // Reads the pose of one joint: a word of three angles, then its place when
 // the word says so. Gives the byte after the pose.
 u8 *pose_read(u8 *data, float angle[3], float place[3]);
@@ -100,5 +108,10 @@ void anim_read(s32 slot, s32 step);
 // Makes the matrix of each joint of a pose from its angles, and puts it in
 // the node of the joint.
 void joint_chain(s32 slot);
+
+// Gives the model of a slot its pose for FRAME of FILE, at AT. LOOK, when not
+// NULL, turns the head. FLAGS: 1 keeps the wrestler in place over a change of
+// file, 2 eases into a new file, 8 keeps its height too.
+void model_update(s32 slot, s32 file, s32 frame, ModelPlace *at, float *look, s32 flags, s32 lean_x, s32 lean_z);
 
 #endif
