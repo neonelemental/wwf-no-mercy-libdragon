@@ -15,9 +15,8 @@ output go through our code on libdragon. The flash save, the Controller Pak
 and rumble still run on libultra, on top of our calls. The source variant
 needs the Expansion Pak: with no pak, it stops before the game starts.
 
-The source variant plays a match in the harness's emulator. ares 147 booted
-the build that had only the kernel on libdragon. Neither ares nor a console
-has run the build with the device parts.
+The source variant plays a match in the harness's emulator and boots in ares
+147. No console has run it yet.
 
 | part | on libdragon |
 |---|---|
