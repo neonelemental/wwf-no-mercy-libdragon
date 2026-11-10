@@ -2,6 +2,7 @@
 
 extern Rope D_80084410[ROPE_SIDES][ROPE_ROPES];
 extern RopeSide D_80084370[ROPE_SIDES];
+extern RopeNode D_80084000[ROPE_SIDES];
 // The height of each rope of a side, and the 4 corners of a rope's section.
 extern u8 D_80052888[ROPE_ROPES];
 extern s8 D_80052848[4];
@@ -33,6 +34,7 @@ typedef struct {
 } RopeWrestler;
 extern RopeWrestler D_800A1204[4];
 
+extern s16 D_800A8968;  // the place of the match
 extern u8 game_mode;
 extern u32 D_80097EC0;
 extern u32 D_800A9950;
@@ -44,7 +46,10 @@ void func_8000E670(float *x, float *y, float *z);
 void func_8001AF80(u8 *model, u32 solid, s32 shift);
 void func_8001D21C(void);
 void func_8001DA04(void);
+s32 func_8001EB04(void);
 void func_8001ED20(void);
+void func_8001FFA8(void);
+void func_80022178(void);
 float func_80034B40(float x);
 s32 func_800EE640_ovl_a(void);
 s32 func_800EE69C_ovl_a(void);
@@ -99,6 +104,67 @@ void rope_side(RopeVertex *vertex, int side)
     for (int i = 0; i < ROPE_PIECES; i++) {
         s16 a = drawn->out[i], b = drawn->out[i + 1];
         drawn->piece[i]->centre[2] = (float)(a < b ? b : a);
+    }
+}
+
+void rope_swing(void)
+{
+    func_80022178();
+    for (int side = 0; side < ROPE_SIDES; side++) {
+        for (int i = 0; i < ROPE_ROPES; i++) {
+            Rope *rope = &D_80084410[side][i];
+            float step = rope->up_step;
+            rope->ticks--;
+            if (step != 0.0f) {
+                rope->up = rope->up + step;
+                if (rope->ticks <= 0) {
+                    rope->up_end = (float)((double)-rope->up_end * 0.6);
+                    if ((double)absf(rope->up_end) < 0.1) {
+                        float other = rope->out_step;
+                        rope->up = 0;
+                        rope->up_end = 0;
+                        rope->up_step = 0;
+                        if (other == 0.0f) {
+                            rope->state = 0;
+                        }
+                    } else {
+                        rope->up_step = (float)((double)(rope->up_end - rope->up) * (1.0 / 6.0));
+                    }
+                }
+            }
+            step = rope->out_step;
+            if (step != 0.0f) {
+                rope->out = rope->out + step;
+                if (rope->ticks > 0) {
+                    continue;
+                }
+                rope->out_end = (float)((double)-rope->out_end * (rope->state != 7 ? 0.6 : 0.7));
+                if ((double)absf(rope->out_end) < 0.1) {
+                    float other = rope->up_step;
+                    rope->out = 0;
+                    rope->out_end = 0;
+                    rope->out_step = 0;
+                    if (other == 0.0f) {
+                        rope->state = 0;
+                    }
+                } else {
+                    rope->out_step = (float)((double)(rope->out_end - rope->out) * (rope->state != 7 ? 1.0 / 6.0 : 1.0 / 13.0));
+                }
+            }
+            if (rope->ticks > 0) {
+                continue;
+            }
+            if (rope->state != 7) {
+                rope->ticks = 6;
+            } else {
+                float end = rope->out_end;
+                rope->ticks = 13;
+                if (0.0f < end) {
+                    rope->state = 6;
+                }
+            }
+        }
+        rope_side(D_80084000[side].vertices, side);
     }
 }
 
@@ -308,4 +374,17 @@ void ring_tick(void)
         }
     }
     ring->ticks++;
+}
+
+void arena_tick(void)
+{
+    s16 arena = D_800A8968;
+    if (arena >= 10 && arena != 30) {
+        if (game_mode != 3 || (s16)func_8001EB04() == 0) {
+            func_8001FFA8();
+            return;
+        }
+    }
+    rope_swing();
+    ring_tick();
 }

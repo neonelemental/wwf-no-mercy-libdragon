@@ -14,14 +14,18 @@
 #define ROPE_PIECES 6
 
 // One rope of a side. It bends up and out the most at one place along the
-// side, and less from there to each post.
+// side, and less from there to each post. A bend swings to its end by a step
+// each tick, and the end then turns about and gets shorter.
 typedef struct {
-    s16 state;
-    s16 ticks;
+    s16 state;  // 0 at rest; 7 swings slower and longer
+    s16 ticks;  // until the swing turns
     float at;
     float up;
     float out;
-    u8 unknown_10[0x10];
+    u8 unknown_10[4];
+    float up_end;
+    float out_end;
+    u8 unknown_1C[4];
     float up_step;
     float out_step;
 } Rope;
@@ -31,6 +35,8 @@ ULTRA_AT(Rope, ticks, 0x02);
 ULTRA_AT(Rope, at, 0x04);
 ULTRA_AT(Rope, up, 0x08);
 ULTRA_AT(Rope, out, 0x0C);
+ULTRA_AT(Rope, up_end, 0x14);
+ULTRA_AT(Rope, out_end, 0x18);
 ULTRA_AT(Rope, up_step, 0x20);
 ULTRA_AT(Rope, out_step, 0x24);
 
@@ -116,6 +122,10 @@ ULTRA_AT(Ring, place, 0x18);
 ULTRA_AT(Ring, wall_solid, 0x1C);
 ULTRA_AT(Ring, ticks, 0x20);
 
+// The tick of the place of a match: the ring, or another place.
+void arena_tick(void);
+// Swings each rope and writes each side.
+void rope_swing(void);
 // Writes the vertices of the 3 ropes of a side, and the centre of each piece.
 void rope_side(RopeVertex *vertex, int side);
 // Bounces the ring, sorts and fades what stands about it, and walks its nodes.

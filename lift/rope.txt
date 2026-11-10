@@ -14,3 +14,11 @@ func_8001BFA4
 func_8001C180
 func_8001C210
 func_8001C3B4
+func_80022CEC rope_swing
+func_80022E70
+func_80022F0C
+func_80022FF4
+func_80023004
+func_80023078
+func_8001B320 arena_tick
+func_8001B390
