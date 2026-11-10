@@ -13,11 +13,13 @@ OSIntMask osSetIntMask(OSIntMask im)
     OSIntMask old = mask;
     mask = im;
     // Bit B of the RCP bits is line B of the MI: SP, SI, AI, VI, PI, DP.
-    // MI_MASK takes a clear bit and a set bit for each line.
-    u32 rcp = (im >> 16) & 0x3F, w = 0;
-    for (int b = 0; b < 6; b++)
-        w |= (rcp & (1u << b)) ? 2u << (2 * b) : 1u << (2 * b);
-    *MI_MASK = w;
+    // MI_MASK takes a clear bit and a set bit for each line: the six bits
+    // go to the even bits of W, and each pair is then 01 or 10.
+    u32 w = (im >> 16) & 0x3F;
+    w = (w | w << 4) & 0x30F;
+    w = (w | w << 2) & 0x333;
+    w = (w | w << 1) & 0x555;
+    *MI_MASK = w << 1 | (w ^ 0x555);
     enable_interrupts();
     return old;
 }
