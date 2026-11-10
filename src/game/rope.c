@@ -8,16 +8,46 @@ extern s8 D_80052848[4];
 extern s8 D_8005284C[4];
 
 extern Ring D_8007D780;
-extern RopeNode D_800785B0[];  // the ring
+// The ring, and with it the 10 things that are sorted against it.
+extern RopeNode D_800785B0[13];
+extern RopeNode D_8007A290;
+// The cage of a cage match: its 7 parts that shake, and the wall that fades
+// in, with that wall's model.
+extern RopeNode D_8007A3B0[7];
+extern RopeNode D_8007AB28;
+extern u32 D_8007AC04;
+extern u8 D_8007AC08[];
 extern RopeNode D_8007AC40[4];  // the thing that can break
 extern RopeNode D_8007B080[2][3];
 // The place of each part of the thing that can break.
 extern float D_800500B8[4][3];
+// The wall as it was last written: how solid, and how far it shook.
+extern u8 D_8005089C;
+extern s8 D_8005089D;
 
+// A wrestler's record, from the height of its second joint on. For the
+// model's header at the merge.
+typedef struct {
+    float height;
+    u8 unknown_04[0xB20];
+} RopeWrestler;
+extern RopeWrestler D_800A1204[4];
+
+extern u8 game_mode;
 extern u32 D_80097EC0;
 extern u32 D_800A9950;
+extern u16 D_8009FDE0;
+extern s16 D_800A9352;
 
 void func_80002268(RopeNode *node);
+void func_8000E670(float *x, float *y, float *z);
+void func_8001AF80(u8 *model, u32 solid, s32 shift);
+void func_8001D21C(void);
+void func_8001DA04(void);
+void func_8001ED20(void);
+float func_80034B40(float x);
+s32 func_800EE640_ovl_a(void);
+s32 func_800EE69C_ovl_a(void);
 
 // The game's float to u32.
 static inline u32 to_u32(float x)
@@ -26,6 +56,12 @@ static inline u32 to_u32(float x)
         return (u32)(s32)(x - 2147483648.0f) | 0x80000000;
     }
     return (u32)(s32)x;
+}
+
+// The game's absolute value, which keeps a zero's sign.
+static inline float absf(float x)
+{
+    return (double)x < 0.0 ? -x : x;
 }
 
 static inline void move_to(Matrix m, float x, float y, float z)
@@ -147,4 +183,129 @@ void ringside_tick(void)
         }
         func_80002268(&thing[0]);
     }
+}
+
+void ring_tick(void)
+{
+    Ring *ring = &D_8007D780;
+    u32 solid = 0xFF;
+    if (0.1 < (double)absf(ring->bounce_end - ring->bounce)) {
+        ring->bounce = ring->bounce + ring->bounce_step;
+    } else {
+        ring->bounce_end = (float)-((double)ring->bounce_end * 0.3);
+        if ((double)absf(ring->bounce_end) < 0.1) {
+            ring->bounce_end = 0;
+            ring->bounce = 0;
+            ring->bounce_step = 0;
+        } else {
+            ring->bounce_step = (float)((double)(ring->bounce_end - ring->bounce) * (1.0 / 6.0));
+        }
+    }
+    if (ring->place != 30 && !(D_800785B0[3].pass & 0x80)) {
+        // Each of the 10 things draws before the ring or after it.
+        for (int i = 3; i < 13; i++) {
+            RopeNode *node = &D_800785B0[i];
+            float ring_z = D_800785B0[0].objects->projected[2];
+            RopeObject *object = node->objects;
+            if ((double)object->projected[2] < (double)ring_z - 400.0) {
+                node->pass = 5;
+                object->bias = 500.0f;
+                node->objects->kind = 0;
+            } else {
+                node->pass = 0;
+                object->bias = 25000.0f;
+                node->objects->kind = 1;
+            }
+        }
+        if ((D_80097EC0 & 0x100000) && game_mode == 3) {
+            D_8007A290.pass |= 0x80;
+        }
+    }
+    move_to(D_800785B0[0].local, 0.0f, ring->bounce, 0.0f);
+    func_80002268(&D_800785B0[0]);
+    if (D_8007AC04 != 0) {
+        // A wall of the cage shows from far away, or in a match as the
+        // wrestlers climb, and gets more solid by 8 a tick.
+        float x, y, z;
+        func_8000E670(&x, &y, &z);
+        float far = func_80034B40(x * x + z * z);
+        if (game_mode == 1) {
+            s32 climb = func_800EE69C_ovl_a();
+            if (climb == 2) {
+                ring->wall_solid = 1;
+            }
+            if (ring->wall_solid != 0 || climb != 0) {
+                float top = 0.0f;
+                for (int i = 0; i < 4; i++) {
+                    float height = D_800A1204[i].height;
+                    if (top < height) {
+                        top = height;
+                    }
+                }
+                far = (top - 100.0f) * (1.0f / 300.0f);
+                if ((double)far < 0.0) {
+                    far = 0;
+                } else if (1.0 < (double)far) {
+                    far = 1.0f;
+                }
+                if (ring->wall_solid == 0) {
+                    solid = to_u32(far * 255.0f);
+                }
+            } else {
+                far = 0.0f;
+            }
+        } else if (far < 600.0f) {
+            far = 0.0f;
+        }
+        s32 shift = 0;
+        D_800A9352 = 0;
+        if (ring->shake != 0) {
+            shift = ((ring->shake & 2) << 1) - 2;
+            for (int i = 0; i < 7; i++) {
+                move_to(D_8007A3B0[i].local, 0.0f, (float)(s8)shift, 0.0f);
+            }
+            ring->shake = ring->shake - 1;
+            s32 climbers = func_800EE640_ovl_a();
+            D_8009FDE0 = climbers;
+            if (climbers & 1) {
+                D_8009FDE0 = 1;
+            } else if (climbers & 2) {
+                D_8009FDE0 = 2;
+            }
+            if (D_8009FDE0 != 0) {
+                D_800A9352 = (s8)shift;
+            }
+        }
+        if (far == 0.0f) {
+            D_8005089C = 0;
+            D_8007AB28.pass |= 0x80;
+        } else {
+            u8 last = D_8005089C;
+            if ((solid & 0xFF) != last || (s8)shift != D_8005089D) {
+                D_8007AB28.pass &= 0x7F;
+                if (game_mode != 3 && last + 8 < (s32)(solid & 0xFF)) {
+                    solid = last + 8;
+                }
+                func_8001AF80(D_8007AC08, solid & 0xFF, D_8005089D);
+                D_8005089C = solid;
+                D_8005089D = shift;
+            }
+        }
+    }
+    if (ring->place != 30) {
+        if (D_80097EC0 & 0x10000) {
+            func_80002268(&D_8007A3B0[0]);
+            func_80002268(&D_8007AB28);
+        }
+        if (D_80097EC0 & 0x100000) {
+            func_80002268(&D_8007A290);
+        }
+        func_8001D21C();
+        func_8001DA04();
+        ringside_tick();
+        if (game_mode != 3) {
+            func_8001ED20();
+        }
+    }
+    ring->ticks++;
 }

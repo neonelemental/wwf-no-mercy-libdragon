@@ -8,3 +8,9 @@ func_8001E294
 func_8001E2B0
 func_8001E2B4
 func_8001E344
+func_8001BDDC ring_tick
+func_8001BEC0
+func_8001BFA4
+func_8001C180
+func_8001C210
+func_8001C3B4

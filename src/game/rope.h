@@ -1,5 +1,6 @@
-// The ring of a match: its ropes and the things beside it. Each of the 4
-// sides has 3 ropes, and draws as 6 pieces between 7 points.
+// The ring of a match: its ropes, its bounce, the cage about it and the
+// things beside it. Each of the 4 sides has 3 ropes, and draws as 6 pieces
+// between 7 points.
 
 #ifndef GAME_ROPE_H
 #define GAME_ROPE_H
@@ -45,16 +46,20 @@ ULTRA_AT(RopeVertex, y, 0x02);
 ULTRA_AT(RopeVertex, z, 0x04);
 
 // A mesh that draws at a node, such as one piece of a side. Its centre is in
-// the space of its node, and the scene sorts by its key. SceneObject of the
-// scene's header at the merge.
+// the space of its node, and the scene sorts by its key: its distance from
+// the camera and its bias. SceneObject of the scene's header at the merge.
 typedef struct {
-    u8 unknown_00[0x0C];
+    s32 kind;  // 1 draws only when it is in view
+    u8 unknown_04[8];
     float centre[3];
-    u8 unknown_18[0x10];
+    float projected[3];
+    float bias;
     float key;
 } RopeObject;
 
 ULTRA_AT(RopeObject, centre, 0x0C);
+ULTRA_AT(RopeObject, projected, 0x18);
+ULTRA_AT(RopeObject, bias, 0x24);
 ULTRA_AT(RopeObject, key, 0x28);
 
 // A node of the scene. SceneNode of the scene's header at the merge.
@@ -85,20 +90,36 @@ typedef struct {
 ULTRA_SIZE(RopeSide, 0x28);
 ULTRA_AT(RopeSide, out, 0x18);
 
-// The ring. Beside it stands a thing of 4 parts that can break: it falls
-// apart in steps, blinks and goes.
+// The ring. Its bounce swings to its end by a step each tick, and the end
+// then turns about and gets shorter. Beside the ring stands a thing of 4
+// parts that can break: it falls apart in steps, blinks and goes.
 typedef struct {
-    u8 unknown_00[0x0C];
+    float bounce_end;
+    float bounce;
+    float bounce_step;
     u8 broken;  // 0 whole, 1 falling apart, 2 blinking, 3 gone
     u8 broken_step;
     u8 broken_slow;
     u8 broken_wait;
+    u8 unknown_10[4];
+    s16 shake;  // ticks that the cage still shakes
+    u8 unknown_16[2];
+    s16 place;
+    u8 unknown_1A[2];
+    s32 wall_solid;
+    u32 ticks;
 } Ring;
 
 ULTRA_AT(Ring, broken, 0x0C);
+ULTRA_AT(Ring, shake, 0x14);
+ULTRA_AT(Ring, place, 0x18);
+ULTRA_AT(Ring, wall_solid, 0x1C);
+ULTRA_AT(Ring, ticks, 0x20);
 
 // Writes the vertices of the 3 ropes of a side, and the centre of each piece.
 void rope_side(RopeVertex *vertex, int side);
+// Bounces the ring, sorts and fades what stands about it, and walks its nodes.
+void ring_tick(void);
 // Breaks the thing of 4 parts, and sorts it and the 2 things of 3 nodes.
 void ringside_tick(void);
 
