@@ -1,0 +1,2 @@
+func_800135D0 pose_read int
+func_80013858
