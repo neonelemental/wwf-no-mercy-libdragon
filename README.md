@@ -133,8 +133,8 @@ and reads the game's memory by the symbols of the ELF beside the ROM:
 
     build/harness/release/harness build/source/nomercy.z64 tests/tools/scripts/match.txt build/play
 
-Of `tests/tools/scripts/`, `menu.txt` boots to the main menu and `match.txt`
-goes on into a single match. `tests/tools/src/main.rs` lists the commands of a
+Of `tests/tools/scripts/`, `menu.txt` boots to the main menu, `match.txt`
+goes on into a single match, and `long.txt` plays 25 seconds of that match. `tests/tools/src/main.rs` lists the commands of a
 script. A run fails when libdragon stops the game for a fault or a failed
 assert, when the game reads or writes outside RDRAM through the cache, which
 stops the CPU of a console, when the game shows no new picture for 10 seconds
