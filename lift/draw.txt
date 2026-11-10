@@ -1,2 +1,4 @@
 func_800024F8 draw_in_view int
 func_80002598
+func_800025B0 draw_scan
+func_8000267C
