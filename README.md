@@ -128,10 +128,12 @@ only in the harness's emulator.
 libdragon and our C are at the o64 ABI, with 64-bit registers and the FR bit
 of the status register set. The game's assembly keeps the o32 calls of the
 retail game, so `tools/thunks.py` writes a thunk for each call between the
-two, and `src/thunks/hand.S` holds the ones that pass a 64-bit value. The
-retail code also writes some doubles by their halves, which works only with
-the FR bit clear: `tools/cut.py` makes each one a single write of the whole
-double, at the places it finds and those of `double_addrs.txt`.
+two, and `src/thunks/hand.S` holds the ones that pass a 64-bit value.
+`src/dragon/kernel/calls.S` holds a shorter thunk for each of the three calls
+that a frame makes most. The retail code also writes some doubles by their
+halves, which works only with the FR bit clear: `tools/cut.py` makes each one
+a single write of the whole double, at the places it finds and those of
+`double_addrs.txt`.
 
 The harness runs a ROM in the image's emulator, as `make` runs there. It
 presses the buttons of a script, saves the pictures that the script asks for,
