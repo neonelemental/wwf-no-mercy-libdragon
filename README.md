@@ -45,8 +45,8 @@ You need git, Docker and your own copy of WWF No Mercy (USA) (Rev 1):
 
 The build runs in a Docker image that holds libdragon's MIPS toolchain and
 [splat](https://github.com/ethteck/splat). libdragon itself comes from the
-`libdragon` submodule and is built by `make`, at its own flags, with the two
-fixes of `patches/libdragon/`.
+`libdragon` submodule and is built by `make`, at its own flags, with the
+patches of `patches/libdragon/`.
 
     git clone --recurse-submodules https://github.com/neonelemental/wwf-no-mercy-libdragon
     cd wwf-no-mercy-libdragon
