@@ -1,0 +1,210 @@
+--- a/src/device/r4300/mips_instructions.def	2026-11-10 04:19:27
++++ b/src/device/r4300/mips_instructions.def	2026-11-10 04:20:10
+@@ -101,6 +101,18 @@
+ 
+ /* M64P Pseudo instructions */
+ 
++/* The R4300 has 64-bit addresses, and this core 32-bit ones. A 64-bit address
++ * of the physical segment (xkphys) becomes the KSEG1 address of its physical
++ * address, or the KSEG0 one when its cache mode is not the uncached one. */
++static uint32_t address32(int64_t address)
++{
++    if (((uint64_t) address >> 62) == 2) {
++        uint32_t segment = (((uint64_t) address >> 59) & 7) == 2 ? UINT32_C(0xa0000000) : UINT32_C(0x80000000);
++        return segment | ((uint32_t) address & UINT32_C(0x1fffffff));
++    }
++    return (uint32_t) address;
++}
++
+ DECLARE_INSTRUCTION(NI)
+ {
+     DECLARE_R4300
+@@ -151,7 +163,7 @@
+ DECLARE_INSTRUCTION(LB)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     uint32_t value;
+@@ -165,7 +177,7 @@
+ DECLARE_INSTRUCTION(LBU)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     uint32_t value;
+@@ -179,7 +191,7 @@
+ DECLARE_INSTRUCTION(LH)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     uint32_t value;
+@@ -193,7 +205,7 @@
+ DECLARE_INSTRUCTION(LHU)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     uint32_t value;
+@@ -207,7 +219,7 @@
+ DECLARE_INSTRUCTION(LL)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     uint32_t value;
+@@ -221,7 +233,7 @@
+ DECLARE_INSTRUCTION(LW)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     uint32_t value;
+@@ -234,7 +246,7 @@
+ DECLARE_INSTRUCTION(LWU)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -248,7 +260,7 @@
+ DECLARE_INSTRUCTION(LWL)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -265,7 +277,7 @@
+ DECLARE_INSTRUCTION(LWR)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -284,7 +296,7 @@
+ DECLARE_INSTRUCTION(LD)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -294,7 +306,7 @@
+ DECLARE_INSTRUCTION(LDL)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -311,7 +323,7 @@
+ DECLARE_INSTRUCTION(LDR)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -332,7 +344,7 @@
+ DECLARE_INSTRUCTION(SB)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     unsigned int shift = bshift(lsaddr);
+@@ -343,7 +355,7 @@
+ DECLARE_INSTRUCTION(SH)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+     unsigned int shift = hshift(lsaddr);
+@@ -354,7 +366,7 @@
+ DECLARE_INSTRUCTION(SC)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -374,7 +386,7 @@
+ DECLARE_INSTRUCTION(SW)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -384,7 +396,7 @@
+ DECLARE_INSTRUCTION(SWL)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -401,7 +413,7 @@
+ DECLARE_INSTRUCTION(SWR)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -416,7 +428,7 @@
+ DECLARE_INSTRUCTION(SD)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -426,7 +438,7 @@
+ DECLARE_INSTRUCTION(SDL)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 
+@@ -443,7 +455,7 @@
+ DECLARE_INSTRUCTION(SDR)
+ {
+     DECLARE_R4300
+-    const uint32_t lsaddr = (uint32_t) irs32 + (uint32_t) iimmediate;
++    const uint32_t lsaddr = address32(irs + iimmediate);
+     int64_t *lsrtp = &irt;
+     ADD_TO_PC(1);
+ 

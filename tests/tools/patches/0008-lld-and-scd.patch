@@ -1,0 +1,88 @@
+diff --color -ru b/src/device/r4300/cached_interp.c c/src/device/r4300/cached_interp.c
+--- a/src/device/r4300/cached_interp.c
++++ b/src/device/r4300/cached_interp.c
+@@ -290,8 +290,6 @@
+ #define cached_interp_LDC2        cached_interp_RESERVED_COP2
+ #define cached_interp_DCTC2       cached_interp_RESERVED_COP2
+ #define cached_interp_LWC2        cached_interp_RESERVED_COP2
+-#define cached_interp_LLD         cached_interp_NI
+-#define cached_interp_SCD         cached_interp_NI
+ #define cached_interp_SDC2        cached_interp_RESERVED_COP2
+ #define cached_interp_SWC2        cached_interp_RESERVED_COP2
+ #define cached_interp_JR_IDLE     cached_interp_NI
+diff --color -ru b/src/device/r4300/mips_instructions.def c/src/device/r4300/mips_instructions.def
+--- a/src/device/r4300/mips_instructions.def
++++ b/src/device/r4300/mips_instructions.def
+@@ -230,6 +230,18 @@
+     }
+ }
+ 
++DECLARE_INSTRUCTION(LLD)
++{
++    DECLARE_R4300
++    const uint32_t lsaddr = address32(irs + iimmediate);
++    int64_t *lsrtp = &irt;
++    ADD_TO_PC(1);
++
++    if (r4300_read_aligned_dword(r4300, lsaddr, (uint64_t*)lsrtp)) {
++        r4300->llbit = 1;
++    }
++}
++
+ DECLARE_INSTRUCTION(LW)
+ {
+     DECLARE_R4300
+@@ -373,6 +385,26 @@
+     if (r4300->llbit)
+     {
+         if (r4300_write_aligned_word(r4300, lsaddr, (uint32_t)*lsrtp, ~UINT32_C(0))) {
++            r4300->llbit = 0;
++            *lsrtp = 1;
++        }
++    }
++    else
++    {
++        *lsrtp = 0;
++    }
++}
++
++DECLARE_INSTRUCTION(SCD)
++{
++    DECLARE_R4300
++    const uint32_t lsaddr = address32(irs + iimmediate);
++    int64_t *lsrtp = &irt;
++    ADD_TO_PC(1);
++
++    if (r4300->llbit)
++    {
++        if (r4300_write_aligned_dword(r4300, lsaddr, (uint64_t)*lsrtp, ~UINT64_C(0))) {
+             r4300->llbit = 0;
+             *lsrtp = 1;
+         }
+diff --color -ru b/src/device/r4300/pure_interp.c c/src/device/r4300/pure_interp.c
+--- a/src/device/r4300/pure_interp.c
++++ b/src/device/r4300/pure_interp.c
+@@ -727,8 +727,9 @@
+ 		else                NOP(r4300, 0);
+ 		break;
+ 	case 49: LWC1(r4300, op); break;
+-	case 52: /* Major opcode 52: LLD (Not implemented) */
+-		NI(r4300, op);
++	case 52: /* Major opcode 52: LLD */
++		if (RT_OF(op) != 0) LLD(r4300, op);
++		else                NOP(r4300, 0);
+ 		break;
+ 	case 53: LDC1(r4300, op); break;
+ 	case 55: /* Major opcode 55: LD */
+@@ -740,8 +741,9 @@
+ 		else                NOP(r4300, 0);
+ 		break;
+ 	case 57: SWC1(r4300, op); break;
+-	case 60: /* Major opcode 60: SCD (Not implemented) */
+-		NI(r4300, op);
++	case 60: /* Major opcode 60: SCD */
++		if (RT_OF(op) != 0) SCD(r4300, op);
++		else                NOP(r4300, 0);
+ 		break;
+ 	case 61: SDC1(r4300, op); break;
+ 	case 63: SD(r4300, op); break;
