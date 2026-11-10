@@ -14,10 +14,11 @@ through a thunk.
 - A routine LABEL of the split that our C calls: our C calls asm_LABEL, which
   keeps all 64 bits of each saved register around the call.
 
-A --hand object is assembly of ours that gives such a NAME itself, for a call
-that passes a 64-bit value, which no rule here can move. No thunk here moves a
-double or a second float argument, and none goes into the split with more than
-four arguments.
+A second float or double argument is in $f14 for the assembly and in $f13 for
+our C, and each thunk copies it. A --hand object is assembly of ours that
+gives such a NAME itself, for a call that passes a 64-bit integer, or an
+integer after a double, which no rule here can move. No thunk goes into the
+split with more than four arguments.
 
 A line `LABEL NAME MARKS` of OUT/checks.txt is a routine of the game that the
 build checks: the assembly is old_LABEL, and our C is NAME. Its thunk LABEL
@@ -49,6 +50,8 @@ TO_C = """\
 	sd	$9, 40($sp)
 	sd	$10, 48($sp)
 	sd	$11, 56($sp)
+	dmfc1	$1, $f14
+	dmtc1	$1, $f13
 	jal	c_{name}
 	nop
 	ld	$31, 72($sp)
@@ -63,7 +66,9 @@ TO_ASM = """\
 	.globl	asm_{name}
 asm_{name}:
 	addiu	$sp, $sp, -112
-{save}	jal	{name}
+{save}	dmfc1	$1, $f13
+	dmtc1	$1, $f14
+	jal	{name}
 	nop
 {load}	jr	$31
 	addiu	$sp, $sp, 112
