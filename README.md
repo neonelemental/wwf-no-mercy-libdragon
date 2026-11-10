@@ -18,6 +18,9 @@ needs the Expansion Pak: with no pak, it stops before the game starts.
 The source variant plays a match in the harness's emulator and boots in ares
 147. No console has run it yet.
 
+The game's own routines move to C one at a time, in `src/game/`, each checked
+call by call against its assembly. The 4x4 matrix product is the first.
+
 | part | on libdragon |
 |---|---|
 | threads, messages, interrupts | yes |
