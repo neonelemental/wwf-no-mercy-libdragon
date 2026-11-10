@@ -218,3 +218,81 @@ s32 draw_task(DrawFrame *frame, s32 turn, s32 first)
     func_80002DE4(frame, list, next >= D_800619B4, (s16)kind);
     return next;
 }
+
+// The queue that the main thread wakes the graphics thread by, the frame
+// that it gives, or null for none, and the queue of the answer.
+extern OSMesgQueue D_80060B00;
+extern DrawFrame *D_80060B3C;
+extern OSMesgQueue D_80060B20;
+// What the scheduler tells the graphics thread: 1 for a retrace, 2 for a
+// task that is done, 4 for the reset button.
+extern OSMesgQueue D_80060AA8;
+// The two pictures that the frames draw into in turn.
+extern u8 D_8038F800[];
+extern u8 D_803C7C00[];
+// Set once the reset button is down.
+extern s16 D_80043612;
+
+void func_8000071C(s32 which);
+void func_800036DC(s32 on);
+void func_800344C0(void);
+void osViSetYScale(f32 factor);
+void osViBlack(u8 active);
+
+// Takes the next message of the scheduler.
+static void told(u32 *retraces, u32 *pending)
+{
+    OSMesg what = NULL;
+    osRecvMesg(&D_80060AA8, &what, OS_MESG_BLOCK);
+    switch (*(s16 *)what) {
+    case 1:
+        ++*retraces;
+        break;
+    case 2:
+        --*pending;
+        break;
+    case 4:
+        D_80043612 = 1;
+        *pending += 0x40;
+        osViSetYScale(1.0f);
+        osViBlack(1);
+        func_800036DC(0);
+        break;
+    }
+}
+
+void draw_thread(void *arg)
+{
+    u32 image = 0;
+    u32 retraces = 2;
+    u32 pending = 0;
+    s32 turn = 0;
+    for (;;) {
+        osRecvMesg(&D_80060B00, NULL, OS_MESG_BLOCK);
+        DrawFrame *frame = D_80060B3C;
+        if (frame) {
+            func_8000071C(0);
+            frame->image = image & 1 ? D_803C7C00 : D_8038F800;
+            image ^= 1;
+            draw_order(turn);
+        }
+        osSendMesg(&D_80060B20, NULL, OS_MESG_BLOCK);
+        while (retraces < 2) {
+            told(&retraces, &pending);
+        }
+        if (!frame) {
+            continue;
+        }
+        func_800344C0();
+        retraces = 0;
+        s32 next = 0;
+        do {
+            while (next < D_800619B4 && pending < 2) {
+                next = draw_task(frame, turn, next);
+                pending++;
+            }
+            told(&retraces, &pending);
+        } while (next < D_800619B4 || pending);
+        turn ^= 1;
+    }
+}

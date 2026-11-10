@@ -58,5 +58,9 @@ s32 draw_list_objects(Gfx **list, s32 turn, s32 first);
 // Writes the display list of one task and sends the task. Gives the place
 // of the first chain that it left.
 s32 draw_task(DrawFrame *frame, s32 turn, s32 first);
+// The graphics thread: for each frame of the main thread it makes the draw
+// order, holds the frame until two retraces after the last one, and sends
+// its tasks, at most two at a time.
+void draw_thread(void *arg);
 
 #endif

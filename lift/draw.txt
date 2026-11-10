@@ -7,3 +7,12 @@ func_800027EC
 func_80002BB4 draw_list_start int
 func_800028B4 draw_list_objects int
 func_80002FA4 draw_task int waits
+func_80003138 draw_thread waits
+func_80003180
+func_800031D4
+func_800031F8
+func_800031FC
+func_800032A4
+func_800032B8
+func_8000335C
+func_80003388
