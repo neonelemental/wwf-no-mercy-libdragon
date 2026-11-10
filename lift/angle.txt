@@ -1,0 +1,4 @@
+func_800054E0 game_atanf float
+func_800055C8
+func_800055D8 game_atan2f float
+func_80005670
