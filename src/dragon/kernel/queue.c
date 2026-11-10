@@ -20,14 +20,21 @@ void osCreateMesgQueue(OSMesgQueue *mq, OSMesg *msg, s32 count)
     mq->msg = msg;
 }
 
+// AT, which is under twice the size of the ring, as an index of it. A
+// divide takes 37 cycles.
+static s32 wrap(OSMesgQueue *mq, s32 at)
+{
+    return at >= mq->msgCount ? at - mq->msgCount : at;
+}
+
 // Puts MSG last, or first when JAM. Interrupts are off.
 static void put(OSMesgQueue *mq, OSMesg msg, bool jam)
 {
     if (jam) {
-        mq->first = (mq->first + mq->msgCount - 1) % mq->msgCount;
+        mq->first = wrap(mq, mq->first + mq->msgCount - 1);
         mq->msg[mq->first] = msg;
     } else {
-        mq->msg[(mq->first + mq->validCount) % mq->msgCount] = msg;
+        mq->msg[wrap(mq, mq->first + mq->validCount)] = msg;
     }
     mq->validCount++;
 }
@@ -79,7 +86,7 @@ s32 osRecvMesg(OSMesgQueue *mq, OSMesg *msg, s32 flag)
     }
     if (msg)
         *msg = mq->msg[mq->first];
-    mq->first = (mq->first + 1) % mq->msgCount;
+    mq->first = wrap(mq, mq->first + 1);
     mq->validCount--;
     ultra_wake(&mq->fullqueue, false);
     enable_interrupts();
