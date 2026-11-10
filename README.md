@@ -23,7 +23,7 @@ The source variant plays a match in the harness's emulator and boots in ares
 | video | yes |
 | cartridge reads | yes |
 | controllers | yes |
-| RSP tasks | no |
+| RSP tasks | yes |
 | audio out | yes |
 | flash saves | no |
 | Controller Pak and rumble | no |

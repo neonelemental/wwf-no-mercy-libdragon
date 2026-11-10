@@ -1,0 +1,16 @@
+# libultra's RSP task calls, which src/dragon/sp gives on libdragon's rsp.c.
+
+osSpTaskLoad
+osSpTaskStartGo
+osSpTaskYield
+osSpTaskYielded
+
+# The SP register calls under them. A kept routine that no run has reached
+# also calls the PC one.
+func_8003E2D0
+func_8003E2F0
+func_8003E300
+func_8003E310 __osSpSetPc
+func_8003E338
+func_8003E340
+func_8003E3A4
