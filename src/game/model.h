@@ -4,7 +4,7 @@
 #ifndef GAME_MODEL_H
 #define GAME_MODEL_H
 
-#include "matrix.h"
+#include "scene.h"
 #include "ultra.h"
 
 #define MODEL_SLOTS 4
@@ -39,24 +39,9 @@ ULTRA_AT(Joint, heading, 0x78);
 
 extern Joint D_800A1130[MODEL_SLOTS][MODEL_JOINTS];
 
-// A node of the scene. It is the SceneNode of src/game/scene.h: fold it into
-// that one at the merge.
-typedef struct ModelNode {
-    struct ModelNode *parent;
-    u8 unknown04[0x18];
-    Matrix local;
-    Matrix world;         // local by the world matrix of the parent
-    Matrix product;
-} ModelNode;
-
-ULTRA_SIZE(ModelNode, 0xDC);
-ULTRA_AT(ModelNode, local, 0x1C);
-ULTRA_AT(ModelNode, world, 0x5C);
-ULTRA_AT(ModelNode, product, 0x9C);
-
 // The nodes of each slot. Node 0 is the wrestler, and node n has the matrix
 // of joint n.
-extern ModelNode D_80091CC0[MODEL_SLOTS][MODEL_NODES];
+extern SceneNode D_80091CC0[MODEL_SLOTS][MODEL_NODES];
 
 // The animation that a slot plays. Its file comes from the cartridge a pose
 // at a time, one pose ahead: data[now] holds the pose to read, and the other

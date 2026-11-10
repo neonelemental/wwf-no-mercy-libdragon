@@ -5,7 +5,7 @@
 #ifndef GAME_ROPE_H
 #define GAME_ROPE_H
 
-#include "matrix.h"
+#include "scene.h"
 #include "ultra.h"
 
 #define ROPE_SIDES 4
@@ -40,56 +40,9 @@ ULTRA_AT(Rope, out_end, 0x18);
 ULTRA_AT(Rope, up_step, 0x20);
 ULTRA_AT(Rope, out_step, 0x24);
 
-// A vertex of a display list, as the RSP reads it. Vertex of the scene's
-// header at the merge.
-typedef struct {
-    s16 x, y, z;
-    u8 unknown_06[0x0A];
-} RopeVertex;
-
-ULTRA_SIZE(RopeVertex, 0x10);
-ULTRA_AT(RopeVertex, y, 0x02);
-ULTRA_AT(RopeVertex, z, 0x04);
-
-// A mesh that draws at a node, such as one piece of a side. Its centre is in
-// the space of its node, and the scene sorts by its key: its distance from
-// the camera and its bias. SceneObject of the scene's header at the merge.
-typedef struct {
-    s32 kind;  // 1 draws only when it is in view
-    u8 unknown_04[8];
-    float centre[3];
-    float projected[3];
-    float bias;
-    float key;
-} RopeObject;
-
-ULTRA_AT(RopeObject, centre, 0x0C);
-ULTRA_AT(RopeObject, projected, 0x18);
-ULTRA_AT(RopeObject, bias, 0x24);
-ULTRA_AT(RopeObject, key, 0x28);
-
-// A node of the scene. SceneNode of the scene's header at the merge.
-typedef struct RopeNode {
-    struct RopeNode *parent;
-    struct RopeNode *child;
-    struct RopeNode *next;
-    RopeVertex *vertices;
-    u8 unknown_10[4];
-    RopeObject *objects;
-    u8 pass;  // the draw pass of its objects
-    Matrix local;
-    u8 unknown_5C[0x80];
-} RopeNode;
-
-ULTRA_SIZE(RopeNode, 0xDC);
-ULTRA_AT(RopeNode, vertices, 0x0C);
-ULTRA_AT(RopeNode, objects, 0x14);
-ULTRA_AT(RopeNode, pass, 0x18);
-ULTRA_AT(RopeNode, local, 0x1C);
-
 // What a side draws: its pieces, and how far out its top rope is at each point.
 typedef struct {
-    RopeObject *piece[ROPE_PIECES];
+    SceneObject *piece[ROPE_PIECES];
     s16 out[ROPE_POINTS];
 } RopeSide;
 
@@ -127,7 +80,7 @@ void arena_tick(void);
 // Swings each rope and writes each side.
 void rope_swing(void);
 // Writes the vertices of the 3 ropes of a side, and the centre of each piece.
-void rope_side(RopeVertex *vertex, int side);
+void rope_side(Vertex *vertex, int side);
 // Bounces the ring, sorts and fades what stands about it, and walks its nodes.
 void ring_tick(void);
 // Breaks the thing of 4 parts, and sorts it and the 2 things of 3 nodes.

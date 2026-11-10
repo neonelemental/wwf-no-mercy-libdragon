@@ -25,7 +25,8 @@ extern float D_80047FB8[], D_80047FCC[];
 extern float D_8004800C[3];
 
 // The slot before D_8009FDE0 stands D_800A9352 higher.
-extern u16 D_8009FDE0, D_800A9352;
+extern u16 D_8009FDE0;
+extern s16 D_800A9352;
 // The flags of each wrestler's model, and where each looks.
 extern s32 D_801593D8_ovl_e[MODEL_SLOTS];
 extern float D_801593A8_ovl_e[MODEL_SLOTS][3];
@@ -36,7 +37,6 @@ float func_80011270(float degrees);                              // brings an an
 float func_80011324(float from, float to);                       // the way from one angle to another
 float func_8000567C(float x);                                    // its size
 void func_80036140(Matrix m, float x, float y, float z);        // a rotation by three angles
-void func_80002268(ModelNode *node);                             // the node walk
 s32 func_80011A54(s32 file);                                     // the frames of a file
 void func_80017160(s32 slot, s32 value);
 void func_80012A8C(s32 slot, s32 file);                          // starts the read of a file
@@ -140,7 +140,7 @@ void joint_chain(s32 slot_word)
 
     for (int n = 1; n < POSE_JOINTS; n++) {
         int j = D_80047EF8[n];
-        ModelNode *node = &D_80091CC0[slot][j];
+        SceneNode *node = &D_80091CC0[slot][j];
         Joint *joint = &D_800A1130[slot][j];
         int parent = D_80047F0C[j];
         if (parent != 0) {
@@ -188,7 +188,7 @@ void model_update(s32 slot_word, s32 file_word, s32 frame_word, ModelPlace *at, 
     u8 flags = flags_word;
     Animation *anim = &D_80069F20[slot];
     Joint *joints = D_800A1130[slot];
-    ModelNode *nodes = D_80091CC0[slot];
+    SceneNode *nodes = D_80091CC0[slot];
     Matrix root, about_y, leaning;
     float kept[3];
     int moved = 0, posed = 0;
@@ -256,7 +256,7 @@ void model_update(s32 slot_word, s32 file_word, s32 frame_word, ModelPlace *at, 
 
     if ((flags & 1) && moved) {
         // The first joint under the new file, and the wrestler back by as far as it moved.
-        ModelNode *node = &nodes[1];
+        SceneNode *node = &nodes[1];
         Joint *joint = &joints[1];
         mtx_rotate_y(about_y, turn);
         func_80036140(leaning, about_x, 0.0f, about_z);
@@ -282,7 +282,7 @@ void model_update(s32 slot_word, s32 file_word, s32 frame_word, ModelPlace *at, 
     mtx_mul(leaning, about_y, root);
     func_80010FC4(root, joints[0].place[0], joints[0].place[1], joints[0].place[2]);
     mtx_mul(anim->base, root, nodes[0].local);
-    func_80002268(&nodes[0]);
+    scene_walk(&nodes[0]);
     joints[0].heading = turn;
     // Two points of each bone, for the routines that read the bones later.
     for (int n = 1; n < MODEL_JOINTS; n++) {
@@ -290,7 +290,7 @@ void model_update(s32 slot_word, s32 file_word, s32 frame_word, ModelPlace *at, 
             continue;
         }
         Joint *joint = &joints[n];
-        ModelNode *node = &nodes[n];
+        SceneNode *node = &nodes[n];
         joint->heading = joint->angle[1] + turn;
         guMtxXFMF(node->world, joint->point[0], joint->point[1], joint->point[2],
             &joint->world[0], &joint->world[1], &joint->world[2]);

@@ -85,6 +85,15 @@ ULTRA_AT(SceneObject, vertices, 0x30);
 ULTRA_AT(SceneObject, list, 0x34);
 ULTRA_AT(SceneObject, mtx, 0x38);
 
+// A float as an unsigned word, the way the game's compiler converts one.
+static inline u32 float_to_u32(float f)
+{
+    if (2147483648.0f <= f) {
+        return (u32)(s32)(f - 2147483648.0f) | 0x80000000;
+    }
+    return (s32)f;
+}
+
 // Gives each node of a tree its world matrix, each parent before its children.
 void scene_walk(SceneNode *node);
 // Gives the node of each object its product, and the object its depth key.

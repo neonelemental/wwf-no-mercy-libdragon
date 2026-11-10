@@ -73,15 +73,6 @@ extern float D_80062B58;
 extern float D_80062B5C;
 extern float D_80062B60;
 
-// A float as an unsigned word, the way the game's compiler converts one.
-static inline u32 float_to_u32(float f)
-{
-    if (2147483648.0f <= f) {
-        return (u32)(s32)(f - 2147483648.0f) | 0x80000000;
-    }
-    return (s32)f;
-}
-
 void scene_light_walk(SceneNode *node)
 {
     float to_light[3], origin[3], normal[3];

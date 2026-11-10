@@ -1,8 +1,10 @@
 #include "rope.h"
 
+#include "model.h"
+
 extern Rope D_80084410[ROPE_SIDES][ROPE_ROPES];
 extern RopeSide D_80084370[ROPE_SIDES];
-extern RopeNode D_80084000[ROPE_SIDES];
+extern SceneNode D_80084000[ROPE_SIDES];
 // The height of each rope of a side, and the 4 corners of a rope's section.
 extern u8 D_80052888[ROPE_ROPES];
 extern s8 D_80052848[4];
@@ -10,29 +12,21 @@ extern s8 D_8005284C[4];
 
 extern Ring D_8007D780;
 // The ring, and with it the 10 things that are sorted against it.
-extern RopeNode D_800785B0[13];
-extern RopeNode D_8007A290;
+extern SceneNode D_800785B0[13];
+extern SceneNode D_8007A290;
 // The cage of a cage match: its 7 parts that shake, and the wall that fades
 // in, with that wall's model.
-extern RopeNode D_8007A3B0[7];
-extern RopeNode D_8007AB28;
+extern SceneNode D_8007A3B0[7];
+extern SceneNode D_8007AB28;
 extern u32 D_8007AC04;
 extern u8 D_8007AC08[];
-extern RopeNode D_8007AC40[4];  // the thing that can break
-extern RopeNode D_8007B080[2][3];
+extern SceneNode D_8007AC40[4];  // the thing that can break
+extern SceneNode D_8007B080[2][3];
 // The place of each part of the thing that can break.
 extern float D_800500B8[4][3];
 // The wall as it was last written: how solid, and how far it shook.
 extern u8 D_8005089C;
 extern s8 D_8005089D;
-
-// A wrestler's record, from the height of its second joint on. For the
-// model's header at the merge.
-typedef struct {
-    float height;
-    u8 unknown_04[0xB20];
-} RopeWrestler;
-extern RopeWrestler D_800A1204[4];
 
 extern s16 D_800A8968;  // the place of the match
 extern u8 game_mode;
@@ -41,7 +35,6 @@ extern u32 D_800A9950;
 extern u16 D_8009FDE0;
 extern s16 D_800A9352;
 
-void func_80002268(RopeNode *node);
 void func_8000E670(float *x, float *y, float *z);
 void func_8001AF80(u8 *model, u32 solid, s32 shift);
 void func_8001D21C(void);
@@ -53,15 +46,6 @@ void func_80022178(void);
 float func_80034B40(float x);
 s32 func_800EE640_ovl_a(void);
 s32 func_800EE69C_ovl_a(void);
-
-// The game's float to u32.
-static inline u32 to_u32(float x)
-{
-    if (2147483648.0f <= x) {
-        return (u32)(s32)(x - 2147483648.0f) | 0x80000000;
-    }
-    return (u32)(s32)x;
-}
 
 // The game's absolute value, which keeps a zero's sign.
 static inline float absf(float x)
@@ -76,7 +60,7 @@ static inline void move_to(Matrix m, float x, float y, float z)
     m[3][2] = z;
 }
 
-void rope_side(RopeVertex *vertex, int side)
+void rope_side(Vertex *vertex, int side)
 {
     for (int point = 0; point < ROPE_POINTS; point++) {
         float x = (float)(point * 74 - 224);
@@ -98,7 +82,7 @@ void rope_side(RopeVertex *vertex, int side)
                 vertex->z = (s32)(out + (float)D_8005284C[corner]);
             }
         }
-        D_80084370[side].out[point] = to_u32(out);
+        D_80084370[side].out[point] = float_to_u32(out);
     }
     RopeSide *drawn = &D_80084370[side];
     for (int i = 0; i < ROPE_PIECES; i++) {
@@ -236,9 +220,9 @@ void ringside_tick(void)
     for (int i = 0; i < 4; i++) {
         D_8007AC40[i].pass = pass;
     }
-    func_80002268(&D_8007AC40[0]);
+    scene_walk(&D_8007AC40[0]);
     for (int i = 0; i < 2; i++) {
-        RopeNode *thing = D_8007B080[i];
+        SceneNode *thing = D_8007B080[i];
         if (thing[0].pass & 0x80) {
             pass = 0x80;
         } else {
@@ -247,7 +231,7 @@ void ringside_tick(void)
         for (int j = 0; j < 3; j++) {
             thing[j].pass = pass;
         }
-        func_80002268(&thing[0]);
+        scene_walk(&thing[0]);
     }
 }
 
@@ -270,9 +254,9 @@ void ring_tick(void)
     if (ring->place != 30 && !(D_800785B0[3].pass & 0x80)) {
         // Each of the 10 things draws before the ring or after it.
         for (int i = 3; i < 13; i++) {
-            RopeNode *node = &D_800785B0[i];
+            SceneNode *node = &D_800785B0[i];
             float ring_z = D_800785B0[0].objects->projected[2];
-            RopeObject *object = node->objects;
+            SceneObject *object = node->objects;
             if ((double)object->projected[2] < (double)ring_z - 400.0) {
                 node->pass = 5;
                 object->bias = 500.0f;
@@ -288,7 +272,7 @@ void ring_tick(void)
         }
     }
     move_to(D_800785B0[0].local, 0.0f, ring->bounce, 0.0f);
-    func_80002268(&D_800785B0[0]);
+    scene_walk(&D_800785B0[0]);
     if (D_8007AC04 != 0) {
         // A wall of the cage shows from far away, or in a match as the
         // wrestlers climb, and gets more solid by 8 a tick.
@@ -303,7 +287,7 @@ void ring_tick(void)
             if (ring->wall_solid != 0 || climb != 0) {
                 float top = 0.0f;
                 for (int i = 0; i < 4; i++) {
-                    float height = D_800A1204[i].height;
+                    float height = D_800A1130[i][1].world[1];
                     if (top < height) {
                         top = height;
                     }
@@ -315,7 +299,7 @@ void ring_tick(void)
                     far = 1.0f;
                 }
                 if (ring->wall_solid == 0) {
-                    solid = to_u32(far * 255.0f);
+                    solid = float_to_u32(far * 255.0f);
                 }
             } else {
                 far = 0.0f;
@@ -360,11 +344,11 @@ void ring_tick(void)
     }
     if (ring->place != 30) {
         if (D_80097EC0 & 0x10000) {
-            func_80002268(&D_8007A3B0[0]);
-            func_80002268(&D_8007AB28);
+            scene_walk(&D_8007A3B0[0]);
+            scene_walk(&D_8007AB28);
         }
         if (D_80097EC0 & 0x100000) {
-            func_80002268(&D_8007A290);
+            scene_walk(&D_8007A290);
         }
         func_8001D21C();
         func_8001DA04();
