@@ -19,6 +19,15 @@ that passes a 64-bit value, which no rule here can move. No thunk here moves a
 double or a second float argument, and none goes into the split with more than
 four arguments.
 
+A line `LABEL NAME MARKS` of OUT/checks.txt is a routine of the game that the
+build checks: the assembly is old_LABEL, and our C is NAME. Its thunk LABEL
+runs the assembly and then our C, with the same arguments and with interrupts
+off, and tells the harness's emulator of each step by a write to the
+cartridge at 0xB3FE0000. The emulator gives our C the memory that the
+assembly had, compares what the two left, and leaves what the assembly left,
+which is also what the caller gets. A call from inside such a run goes to the
+assembly alone.
+
 It writes OUT/thunk/thunks.S, and a copy of each --c object under OUT/thunk/
 with each name changed.
 """
@@ -62,6 +71,103 @@ asm_{name}:
 """
 
 
+# The arguments on the stack, for a callee that takes them from this frame.
+STACK = """\
+	lw	$8, 144($sp)
+	lw	$9, 148($sp)
+	lw	$10, 152($sp)
+	lw	$11, 156($sp)
+	sw	$8, 16($sp)
+	sw	$9, 20($sp)
+	sw	$10, 24($sp)
+	sw	$11, 28($sp)
+"""
+
+# The emulator takes the name, the end of the routine's stack, the result of
+# each run in $2 and $f0, and the steps 1, 2 and 3 with the marks.
+CHECK = """\
+	.globl	{label}
+{label}:
+	lui	$1, %hi(lift_checking)
+	lw	$1, %lo(lift_checking)($1)
+	beqz	$1, 1f
+	nop
+	j	old_{label}
+	nop
+1:	addiu	$sp, $sp, -128
+	sd	$31, 32($sp)
+	sd	$4, 40($sp)
+	sd	$5, 48($sp)
+	sd	$6, 56($sp)
+	sd	$7, 64($sp)
+	sdc1	$f12, 72($sp)
+	sdc1	$f14, 80($sp)
+	mfc0	$8, $12
+	sd	$8, 88($sp)
+	addiu	$9, $0, -2
+	and	$9, $8, $9
+	mtc0	$9, $12
+	nop
+	nop
+{stack}	lui	$1, %hi(lift_checking)
+	addiu	$8, $0, 1
+	sw	$8, %lo(lift_checking)($1)
+	lui	$10, 0xb3fe
+	lui	$9, %hi(2f)
+	addiu	$9, $9, %lo(2f)
+	sw	$9, 4($10)
+	addiu	$9, $sp, 144
+	sw	$9, 8($10)
+	sw	$8, 0($10)
+	jal	old_{label}
+	nop
+	sd	$2, 96($sp)
+	sd	$3, 104($sp)
+	sdc1	$f0, 112($sp)
+	lui	$10, 0xb3fe
+	sw	$2, 16($10)
+	mfc1	$9, $f0
+	sw	$9, 20($10)
+	addiu	$9, $0, 2
+	sw	$9, 0($10)
+	ld	$4, 40($sp)
+	ld	$5, 48($sp)
+	ld	$6, 56($sp)
+	ld	$7, 64($sp)
+	ldc1	$f12, 72($sp)
+	ldc1	$f14, 80($sp)
+{stack}	jal	{name}
+	nop
+	lui	$10, 0xb3fe
+	sw	$2, 24($10)
+	mfc1	$9, $f0
+	sw	$9, 28($10)
+	addiu	$9, $0, {marks} + 3
+	sw	$9, 0($10)
+	lui	$1, %hi(lift_checking)
+	sw	$0, %lo(lift_checking)($1)
+	ld	$2, 96($sp)
+	ld	$3, 104($sp)
+	ldc1	$f0, 112($sp)
+	ld	$8, 88($sp)
+	mtc0	$8, $12
+	ld	$31, 32($sp)
+	jr	$31
+	addiu	$sp, $sp, 128
+	.section .rodata
+2:	.asciz	"{name} ({label})"
+	.section .text
+
+"""
+
+CHECKING = """\
+	.section .bss
+	.align	2
+lift_checking:
+	.space	4
+"""
+
+
 def symbols(nm, objects):
     """Gives the routines that the objects define, and the names they lack."""
     defined, undefined = set(), set()
@@ -89,7 +195,11 @@ def main():
     c_defined, c_undefined = symbols(nm, ours)
     hand_defined, _ = symbols(nm, hand)
     named = [line.split("=")[1].strip() for line in (out / "defsyms.txt").read_text().splitlines() if "=" in line]
-    to_c = sorted(c_defined & (split_undefined | set(named)))
+    checks = [line.split() for line in (out / "checks.txt").read_text().splitlines()]
+    missing = sorted({name for _, name, _ in checks} - c_defined - hand_defined)
+    if missing:
+        sys.exit(f"thunks.py: our C has no routine {', '.join(missing)}")
+    to_c = sorted(c_defined & (split_undefined | set(named) | {name for _, name, _ in checks}))
     to_asm = sorted(c_undefined & split_defined)
 
     text = "# Written by tools/thunks.py.\n\t.set\tnoreorder\n\t.set\tnoat\n\t.section .text\n\n"
@@ -100,6 +210,10 @@ def main():
     load = "".join(f"\tld\t${reg}, {32 + 8 * i}($sp)\n" for i, reg in enumerate(SAVED))
     for name in to_asm:
         text += TO_ASM.format(name=name, save=save, load=load)
+    for label, name, marks in checks:
+        text += CHECK.format(label=label, name=name, marks=marks, stack=STACK)
+    if checks:
+        text += CHECKING
     thunk = out / "thunk"
     thunk.mkdir(parents=True, exist_ok=True)
     (thunk / "thunks.S").write_text(text)

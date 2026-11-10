@@ -9,7 +9,12 @@ SPLIT := build/split
 # PAD puts zero bytes at the start of main text, data and bss, and of each
 # overlay's text, so that each reference must move with the code.
 PAD ?= 0
-ifeq ($(PAD),0)
+# CHECK names lifted routines, or each of them with `all`: build/check/ then
+# keeps their assembly and runs it beside our C.
+CHECK ?=
+ifneq ($(CHECK),)
+VARIANT ?= check
+else ifeq ($(PAD),0)
 VARIANT ?= source
 else
 VARIANT ?= pad$(patsubst 0x%,%,$(PAD))
@@ -108,10 +113,12 @@ $(OUT)/nomercy.z64: $(OUT)/nomercy.elf
 
 else
 
-# Each other variant assembles the split with the labels of replace/*.txt cut,
-# and links our code and libdragon after it (dragon.ld). A directory
-# src/dragon/PART/ joins only with its list replace/PART.txt.
+# Each other variant assembles the split with the labels of replace/*.txt and
+# lift/*.txt cut, and links our code and libdragon after it (dragon.ld). A
+# directory src/dragon/PART/ joins only with its list replace/PART.txt.
 REPLACE := $(wildcard replace/*.txt)
+LIFT    := $(wildcard lift/*.txt)
+comma   := ,
 PARTS   := $(basename $(notdir $(REPLACE)))
 SRC     := $(filter-out src/dragon/%,$(shell find src -name '*.c' -o -name '*.S')) \
 	$(foreach p,$(PARTS),$(shell find src/dragon/$(p) -name '*.c' -o -name '*.S' 2>/dev/null))
@@ -132,10 +139,10 @@ LIBS    := $(addprefix $(LIBDRAGON)/mips64-elf/lib/,libdragon.a libdragonsys.a) 
 # removed source file or replace list also gives a new cut and a new link.
 $(OUT)/inputs.txt: FORCE
 	@mkdir -p $(@D)
-	@echo '$(REPLACE) $(SRC)' | cmp -s - $@ || echo '$(REPLACE) $(SRC)' > $@
+	@echo '$(REPLACE) $(LIFT) $(SRC) $(CHECK)' | cmp -s - $@ || echo '$(REPLACE) $(LIFT) $(SRC) $(CHECK)' > $@
 
-$(OUT)/split/.done: $(SPLIT)/.done tools/cut.py double_addrs.txt $(REPLACE) $(OUT)/inputs.txt
-	python3 tools/cut.py $(SPLIT) $(OUT)/split $(REPLACE)
+$(OUT)/split/.done: $(SPLIT)/.done tools/cut.py double_addrs.txt $(REPLACE) $(LIFT) $(OUT)/inputs.txt
+	python3 tools/cut.py $(SPLIT) $(OUT)/split $(REPLACE) --lift $(LIFT) --check $(subst $(comma), ,$(CHECK))
 	touch $@
 
 $(OUT)/split/asm/%.s: $(OUT)/split/.done ;
@@ -164,8 +171,8 @@ $(OUT)/thunk/thunks.S $(patsubst $(OUT)/obj/%,$(OUT)/thunk/%,$(C_O)): $(OUT)/thu
 $(OUT)/thunk/thunks.o: $(OUT)/thunk/thunks.S
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(OUT)/nomercy.ld: $(SPLIT)/.done tools/link_script.py $(REPLACE) $(OUT)/inputs.txt
-	python3 tools/link_script.py $(SPLIT) $(OUT) --source $(REPLACE)
+$(OUT)/nomercy.ld: $(SPLIT)/.done tools/link_script.py $(REPLACE) $(LIFT) $(OUT)/inputs.txt
+	python3 tools/link_script.py $(SPLIT) $(OUT) --source $(REPLACE) $(LIFT)
 
 # The link gives the dragon segment a rom past the files when they reach it,
 # so that this check can give both numbers.

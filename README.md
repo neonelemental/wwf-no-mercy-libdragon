@@ -62,6 +62,7 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make tests` | builds libdragon into `build/libdragon/` and each test ROM into `tests/NAME/build/NAME.z64` |
 | `make harness` | builds the test harness of `tests/tools` into `build/harness/release/harness` |
 | `make play` | plays `build/source/nomercy.z64` in the harness: a boot, a match and a boot on the save of the match. `make play VARIANT=match` plays the retail image |
+| `make source CHECK=NAME` | builds `build/check/`, which runs the assembly of the lifted routine NAME beside our C; `make play CHECK=NAME` plays it |
 | `make clean` | removes everything the build wrote |
 
 `symbol_addrs.txt` names each routine of the main code, and `extra_addrs.txt`
@@ -89,6 +90,30 @@ The entry is longer than the retail one and main text is shorter, so nothing
 after the entry sits at its retail address. `make play` passes on the variant
 with no pad and with a pad of 0x40.
 
+Each `lift/PART.txt` lists routines of the game that `src/game/` gives in C.
+A line `LABEL NAME` takes LABEL out of the source variant and puts our NAME in
+its place, as a replace list does. Each label inside that routine follows on
+a line of its own. The words `int` or `float` after NAME say that the routine
+gives a result, and `near` that our C is meant to differ from the assembly by
+1 in a word, or in each byte of one.
+
+`make source CHECK=NAME` builds `build/check/`, where the assembly of that
+routine stays beside our C, and `make play CHECK=NAME` plays it. Each call
+runs the assembly and then our C, with the same arguments and from the same
+memory, and the harness's emulator compares what the two wrote to RDRAM and
+what they gave. The run fails at the first call where they differ, with the
+address, the two values and the arguments of that call. The game goes on with
+what the assembly left. The emulator says when a routine first runs under the
+check, and when 100, 10,000 and 1,000,000 of its calls were the same. `CHECK`
+takes names with commas between them, or `all`.
+
+A routine under the check must not wait, wake another thread or write to a
+device, as the check cannot take those back. It can take four arguments on
+the stack, and the check does not compare the stack under its caller. A call
+from inside a checked run goes to the assembly alone, so a routine that only
+checked routines call needs a run with its own name. The check build runs
+only in the harness's emulator.
+
 libdragon and our C are at the o64 ABI, with 64-bit registers and the FR bit
 of the status register set. The game's assembly keeps the o32 calls of the
 retail game, so `tools/thunks.py` writes a thunk for each call between the
@@ -109,6 +134,7 @@ script. A run fails when libdragon stops the game for a fault or a failed
 assert, when the game reads or writes outside RDRAM through the cache, which
 stops the CPU of a console, when the game shows no new picture for 10 seconds
 or plays no sound for 30, when a value that the script expects is another,
+when our C of a lifted routine differs from its assembly in a check build,
 and when the script ends without a picture and a sound in its last second. It then prints where
 the CPU is and what its registers hold, and saves the last picture as
 `failed.png`. When libdragon stopped the game, that picture is libdragon's

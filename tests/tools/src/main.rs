@@ -156,6 +156,8 @@ static FRAMES: AtomicU64 = AtomicU64::new(0);
 static KEYS: AtomicU32 = AtomicU32::new(0);
 /// The emulator saw an access that stops the CPU of a console.
 static FROZEN: AtomicBool = AtomicBool::new(false);
+/// The emulator saw our C of a lifted routine leave other results than its assembly.
+static DIFFERS: AtomicBool = AtomicBool::new(false);
 
 fn fail(text: &str) -> ! {
     eprintln!("harness: {text}");
@@ -196,6 +198,9 @@ extern "C" fn message(_context: *mut c_void, level: c_int, text: *const c_char) 
         eprintln!("mupen64plus: {text}");
         if text.starts_with("cached access outside RDRAM") {
             FROZEN.store(true, Ordering::Relaxed);
+        }
+        if text.starts_with("lift check failed") {
+            DIFFERS.store(true, Ordering::Relaxed);
         }
     }
 }
@@ -334,6 +339,9 @@ impl Run {
         }
         if FROZEN.load(Ordering::Relaxed) {
             self.stopped(frame, "a cached access outside RDRAM, which stops the CPU of a console");
+        }
+        if DIFFERS.load(Ordering::Relaxed) {
+            self.stopped(frame, "our C of a lifted routine differs from its assembly");
         }
         if self.picture.quiet >= STILL {
             self.stopped(frame, &format!("no new picture for {STILL} frames"));

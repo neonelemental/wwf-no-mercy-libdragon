@@ -1,0 +1,176 @@
+--- a/src/device/r4300/r4300_core.c
++++ b/src/device/r4300/r4300_core.c
+@@ -37,6 +37,7 @@
+ #include "device/rcp/mi/mi_controller.h"
+ #include "main/main.h"
+ 
++#include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+@@ -296,8 +297,144 @@
+     address &= UINT32_C(0x1ffffffc);
+ 
+     return mem_base_u32(r4300->mem->base, address);
++}
++
++/* The check of a lifted routine. The ROM runs the assembly of a routine and
++ * then our C from the same memory, and tells this core of each step by a
++ * write to the cartridge at LIFT. The core keeps what each run wrote to RDRAM,
++ * gives the second run the memory that the first had, and says when the two
++ * runs left other words. It then leaves the words of the first run. */
++#define LIFT UINT32_C(0xb3fe0000)
++#define LIFT_WORDS 0x200000
++#define LIFT_LOG 0x40000
++#define LIFT_ROUTINES 256
++static struct { uint32_t word, old, first; } lift_log[LIFT_LOG];
++static uint8_t lift_seen[LIFT_WORDS / 8];
++static struct { uint32_t name, calls; } lift_known[LIFT_ROUTINES], *lift_routine = lift_known;
++static uint32_t lift_count, lift_first, lift_state, lift_limit, lift_value[4], lift_args[6];
++static char lift_name[64];
++static int lift_said;
++
++static void lift_failed(const char* what, uint32_t a, uint32_t b, uint32_t c)
++{
++    char text[128];
++
++    if (lift_said == 8) { return; }
++    lift_said++;
++    snprintf(text, sizeof(text), what, a, b, c);
++    DebugMessage(M64MSG_ERROR, "lift check failed: %s %s; call %u, arguments %08x %08x %08x %08x, floats %08x %08x",
++        lift_name, text, lift_routine->calls, lift_args[0], lift_args[1], lift_args[2], lift_args[3], lift_args[4], lift_args[5]);
++}
++
++/* With the near mark, a word may differ by 1, or by 1 in each of its bytes. */
++static int lift_same(uint32_t a, uint32_t b, int near)
++{
++    int i;
++
++    if (a == b) { return 1; }
++    if (!near) { return 0; }
++    if (a - b == 1 || b - a == 1) { return 1; }
++    for (i = 0; i < 32; i += 8) {
++        int d = (int) ((a >> i) & 0xff) - (int) ((b >> i) & 0xff);
++        if (d < -1 || d > 1) { return 0; }
++    }
++    return 1;
++}
++
++static void lift_write(struct r4300_core* r4300, uint32_t address)
++{
++    uint32_t word;
++
++    if (lift_state == 0 || (address & UINT32_C(0xc0000000)) != UINT32_C(0x80000000)) { return; }
++    /* The stack under the caller belongs to the routine. */
++    if (address < lift_limit && address >= lift_limit - UINT32_C(0x8000)) { return; }
++    word = (address & UINT32_C(0x1fffffff)) >> 2;
++    if (word >= LIFT_WORDS) {
++        lift_failed("writes to the device at %08x, which the check cannot take back", address, 0, 0);
++        return;
++    }
++    if ((lift_seen[word >> 3] & (1 << (word & 7))) || lift_count == LIFT_LOG) { return; }
++    lift_seen[word >> 3] |= 1 << (word & 7);
++    lift_log[lift_count].word = word;
++    lift_log[lift_count].old = *mem_base_u32(r4300->mem->base, word << 2);
++    lift_count++;
++}
++
++/* The routine by the address of its name, which the ROM holds. */
++static void lift_start(struct r4300_core* r4300, uint32_t name)
++{
++    uint32_t i;
++
++    for (i = 0; i < LIFT_ROUTINES - 1 && lift_known[i].name != name && lift_known[i].name != 0; i++) {}
++    lift_routine = &lift_known[i];
++    lift_routine->name = name;
++    for (i = 0; i < sizeof(lift_name) - 1; i++, name++) {
++        uint32_t word = *mem_base_u32(r4300->mem->base, name & UINT32_C(0x1ffffffc));
++        lift_name[i] = (char) (word >> (8 * (3 - (name & 3))));
++        if (lift_name[i] == 0) { break; }
++    }
++    lift_name[i] = 0;
+ }
+ 
++static void lift_step(struct r4300_core* r4300, uint32_t address, uint32_t value)
++{
++    uint32_t i, reg = (address - LIFT) >> 2;
++
++    if (reg == 1) { lift_start(r4300, value); return; }
++    if (reg == 2) { lift_limit = value; return; }
++    if (reg >= 4 && reg < 8) { lift_value[reg - 4] = value; return; }
++    if (reg != 0) { return; }
++    switch (value & 0xff) {
++    case 1: /* the assembly starts */
++        lift_count = 0;
++        lift_state = 1;
++        for (i = 0; i < 4; i++) { lift_args[i] = (uint32_t) r4300_regs(r4300)[4 + i]; }
++        memcpy(&lift_args[4], r4300_cp1_regs_simple(&r4300->cp1)[12], 4);
++        memcpy(&lift_args[5], r4300_cp1_regs_simple(&r4300->cp1)[14], 4);
++        if (lift_routine->calls == 0) {
++            DebugMessage(M64MSG_ERROR, "lift check: %s runs under the check", lift_name);
++        }
++        lift_routine->calls++;
++        break;
++    case 2: /* our C starts, from the memory that the assembly had */
++        for (i = 0; i < lift_count; i++) {
++            uint32_t* at = mem_base_u32(r4300->mem->base, lift_log[i].word << 2);
++            lift_log[i].first = *at;
++            *at = lift_log[i].old;
++        }
++        lift_first = lift_count;
++        lift_state = 2;
++        break;
++    case 3: /* both ran: value has 0x100 for a result in v0, 0x200 for one in f0, 0x400 for near */
++        for (i = 0; i < lift_count; i++) {
++            uint32_t* at = mem_base_u32(r4300->mem->base, lift_log[i].word << 2);
++            uint32_t wanted = i < lift_first ? lift_log[i].first : lift_log[i].old;
++            if (!lift_same(*at, wanted, value & 0x400)) {
++                lift_failed("left %08x at %08x, where its assembly left %08x", *at, UINT32_C(0x80000000) | (lift_log[i].word << 2), wanted);
++            }
++            *at = wanted;
++            lift_seen[lift_log[i].word >> 3] = 0;
++        }
++        if (lift_count == LIFT_LOG) {
++            lift_failed("writes more words than the check keeps", 0, 0, 0);
++        }
++        if ((value & 0x100) && !lift_same(lift_value[0], lift_value[2], value & 0x400)) {
++            lift_failed("gave %08x, where its assembly gave %08x", lift_value[2], lift_value[0], 0);
++        }
++        if ((value & 0x200) && !lift_same(lift_value[1], lift_value[3], value & 0x400)) {
++            lift_failed("gave the float %08x, where its assembly gave %08x", lift_value[3], lift_value[1], 0);
++        }
++        /* 100, 10000 and 1000000 calls */
++        for (i = 100; i <= 1000000; i *= 100) {
++            if (lift_routine->calls == i && lift_said == 0) {
++                DebugMessage(M64MSG_ERROR, "lift check: %s is the same over %u calls", lift_name, i);
++            }
++        }
++        lift_state = 0;
++        break;
++    }
++}
++
+ /* A console stops on a cached access outside RDRAM. Say where it was. */
+ static void cached_access(struct r4300_core* r4300, uint32_t address)
+ {
+@@ -394,6 +531,11 @@
+  */
+ int r4300_write_aligned_word(struct r4300_core* r4300, uint32_t address, uint32_t value, uint32_t mask)
+ {
++    if ((address & ~UINT32_C(0x1f)) == LIFT) {
++        lift_step(r4300, address & ~UINT32_C(3), value);
++        return 1;
++    }
++    lift_write(r4300, address);
+     cached_access(r4300, address);
+ 
+     if ((address & UINT32_C(0xc0000000)) != UINT32_C(0x80000000)) {
+@@ -422,6 +564,8 @@
+ /* Write aligned dword to memory */
+ int r4300_write_aligned_dword(struct r4300_core* r4300, uint32_t address, uint64_t value, uint64_t mask)
+ {
++    lift_write(r4300, address);
++    lift_write(r4300, address + 4);
+     cached_access(r4300, address);
+ 
+     /* XXX: unaligned dword accesses should trigger a address error,

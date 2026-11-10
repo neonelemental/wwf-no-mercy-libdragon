@@ -1,6 +1,6 @@
 """Copies the assembly of the split and cuts the labels of the replace lists.
 
-    python3 tools/cut.py SPLIT OUT LIST...
+    python3 tools/cut.py SPLIT OUT LIST... [--lift LIST...] [--check NAME...]
 
 It copies each SPLIT/asm/**/*.s to OUT/asm/. For each label of each LIST, it
 cuts the lines of that label from its file: from its glabel, alabel or dlabel
@@ -11,6 +11,17 @@ comments and the blank lines just above a label go with that label.
 Each line of a list is `LABEL`, or `LABEL NAME` when our code gives NAME in its
 place. For each `LABEL NAME`, OUT/../defsyms.txt gets `--defsym LABEL=NAME`, so
 that each reference to LABEL goes to NAME.
+
+A --lift list gives routines of the game that our C gives. Its line
+`LABEL NAME` is cut as above, with the labels alone on the lines after it,
+which are inside that routine. The words `int` or `float` after NAME say that
+the routine gives a result, and `near` that our C may differ from the
+assembly by 1 in a word or in each byte of it.
+
+--check names routines of the lift lists by NAME, or each of them by `all`.
+The assembly of such a routine stays, with the name old_LABEL, and
+OUT/../checks.txt gets its line, from which tools/thunks.py writes the LABEL
+that runs both.
 
 The code writes some doubles by their halves, the high half through an odd
 FPU register. That works only with the FR bit of the status register clear.
@@ -29,6 +40,7 @@ import sys
 from pathlib import Path
 
 START = re.compile(r"\s*(?:glabel|alabel|dlabel)\s+([\w.$]+)")
+NAMED = re.compile(r"(\s*(?:glabel|alabel|dlabel|endlabel|nonmatching)\s+)([\w.$]+)")
 ABOVE = re.compile(r"\s*(?:$|/\*.*\*/\s*$|nonmatching\s)")
 # An instruction of the split: its comment of rom, vram and word, then its text.
 WORD = re.compile(r"(\s*/\* \w+ (\w{8}) \w{8} \*/\s+)(.*)")
@@ -50,6 +62,36 @@ def lists(paths):
     return labels
 
 
+MARKS = {"int": 0x100, "float": 0x200, "near": 0x400}
+
+
+def lifts(paths):
+    """Gives (label, NAME, marks, inner labels) of each routine of the lift lists."""
+    routines = []
+    for path in paths:
+        first = len(routines)
+        for n, line in enumerate(Path(path).read_text().splitlines(), 1):
+            words = line.split("#")[0].split()
+            if len(words) == 1 and len(routines) > first:
+                routines[-1][3].append(words[0])
+            elif len(words) > 1 and all(w in MARKS for w in words[2:]):
+                routines.append((words[0], words[1], sum(MARKS[w] for w in set(words[2:])), []))
+            elif words:
+                sys.exit(f"cut.py: {path}:{n}: give LABEL NAME [int|float] [near], then each label inside it")
+    return routines
+
+
+def options(args):
+    """Gives the replace lists, the lift lists and the names to check."""
+    words = {"": []}
+    key = ""
+    for arg in args:
+        if arg in ("--lift", "--check"):
+            key = arg
+        words.setdefault(key, []).append(arg)
+    return words[""], words.get("--lift", [])[1:], words.get("--check", [])[1:]
+
+
 def blocks(lines):
     """Gives (label, first line, end line) of each label of a file."""
     starts = [(i, m.group(1)) for i, line in enumerate(lines) if (m := START.match(line))]
@@ -65,9 +107,13 @@ def blocks(lines):
     return [(label, first, end) for (_, label), first, end in zip(starts, firsts, ends)]
 
 
-def cut(text, labels, found):
+def cut(text, labels, kept, found):
     lines = text.splitlines(keepends=True)
     keep = [True] * len(lines)
+    for i, line in enumerate(lines):
+        if (m := NAMED.match(line)) and m.group(2) in kept:
+            found.add(m.group(2))
+            lines[i] = f"{m.group(1)}old_{m.group(2)}{line[m.end():]}"
     for label, first, end in blocks(lines):
         if label in labels:
             found.add(label)
@@ -108,24 +154,40 @@ def write(path, text):
 
 def main():
     if len(sys.argv) < 3:
-        sys.exit("usage: python3 tools/cut.py SPLIT OUT LIST...")
+        sys.exit("usage: python3 tools/cut.py SPLIT OUT LIST... [--lift LIST...] [--check NAME...]")
     split, out = Path(sys.argv[1]), Path(sys.argv[2])
-    labels = lists(sys.argv[3:])
+    replace, lift, check = options(sys.argv[3:])
+    labels = lists(replace)
+    routines = lifts(lift)
+    unknown = sorted(set(check) - {"all"} - {name for _, name, _, _ in routines})
+    if unknown:
+        sys.exit(f"cut.py: no routine {', '.join(unknown)} in the lift lists")
+    kept, checks = set(), []
+    for label, name, marks, inner in routines:
+        checked = "all" in check or name in check
+        new = {} if checked else {label: name, **dict.fromkeys(inner)}
+        if label in kept or (set(new) | {label}) & set(labels):
+            sys.exit(f"cut.py: {label} or a label inside it is in two lists")
+        labels.update(new)
+        if checked:
+            kept.add(label)
+            checks.append(f"{label} {name} {marks:#x}\n")
     high = {int(w[0], 16) for line in Path("double_addrs.txt").read_text().splitlines() if (w := line.split("#")[0].split())}
     found = set()
     sources = sorted((split / "asm").rglob("*.s"))
     for source in sources:
-        write(out / source.relative_to(split), doubles(cut(source.read_text(), labels, found), high))
+        write(out / source.relative_to(split), doubles(cut(source.read_text(), labels, kept, found), high))
     # A file that the split no longer has would still be assembled and linked.
     wanted = {out / s.relative_to(split) for s in sources}
     for old in (out / "asm").rglob("*.s"):
         if old not in wanted:
             old.unlink()
-    missing = sorted(set(labels) - found)
+    missing = sorted((set(labels) | kept) - found)
     if missing:
         sys.exit(f"cut.py: no label {', '.join(missing)} in {split}/asm")
     defsyms = "".join(f"--defsym {label}={name}\n" for label, name in labels.items() if name)
     write(out.parent / "defsyms.txt", defsyms)
+    write(out.parent / "checks.txt", "".join(checks))
 
 
 if __name__ == "__main__":
