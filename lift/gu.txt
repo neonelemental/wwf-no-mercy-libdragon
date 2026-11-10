@@ -1,0 +1,5 @@
+func_80038880 guMtxF2L
+func_80038B20 guMtxXFMF
+func_80038A60 guNormalize
+func_80038A00 guScaleF
+func_80038AC0 guTranslateF
