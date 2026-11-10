@@ -8,9 +8,10 @@ it back into the retail image. The game files stay binary for now.
 
 ## Status
 
-The game still runs on libultra. libdragon is linked into the source variant
-and loaded into the Expansion Pak, and each part of libultra moves to it in
-turn.
+The game still runs on libultra. In the source variant, libdragon is loaded
+into the Expansion Pak and starts first, then hands the console to the game.
+Each part of libultra moves to it in turn. The source variant needs the
+Expansion Pak: with no pak, it stops before the game starts.
 
 | part | on libdragon |
 |---|---|
@@ -61,11 +62,15 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 names each other address that a word points to, and each variable that the
 harness reads. `reloc_addrs.txt` gives each
 word that holds an address its symbol, and the word moves with the code. It
-gives `MIPS_NONE` to each word that is a number. With no pad, the game code of
-the source variant sits where it sits in the retail image. The variant boots
-from `src/boot/boot.S`, which loads libdragon, built at o32 and placed at rom
-0x2000000, into the Expansion Pak. With a pad of 0x40 or 0x100, it boots
-through the title to the front end and plays sound.
+gives `MIPS_NONE` to each word that is a number.
+
+The source variant boots from `src/boot/boot.S`, which loads libdragon, built
+at o32 and placed at rom 0x2000000, into the Expansion Pak. `src/boot/start.S`
+there does the work of libdragon's IPL3 and goes on to libdragon's `_start`,
+and `src/boot/main.c` then starts the game as the retail entry does. The entry
+is 0x80 bytes longer than the retail one, so main text sits 0x80 bytes after
+its retail place, and main data, main bss and the files 0x100 bytes after
+theirs. `make play` passes on the variant with no pad and with a pad of 0x40.
 
 The harness runs a ROM in the image's emulator, as `make` runs there. It
 presses the buttons of a script, saves the pictures that the script asks for,
