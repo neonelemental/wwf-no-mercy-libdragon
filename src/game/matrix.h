@@ -15,4 +15,9 @@ inline void mtx_mul(Matrix a, Matrix b, Matrix out)
     }
 }
 
+// A rotation by x, then y, then z, each in degrees.
+void mtx_rotate(Matrix m, float x, float y, float z);
+// A rotation about y, in degrees.
+void mtx_rotate_y(Matrix m, float y);
+
 #endif

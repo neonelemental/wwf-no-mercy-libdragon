@@ -18,8 +18,10 @@ needs the Expansion Pak: with no pak, it stops before the game starts.
 The source variant plays a match in the harness's emulator and boots in ares
 147. No console has run it yet.
 
-The game's own routines move to C one at a time, in `src/game/`, each checked
-call by call against its assembly. The 4x4 matrix product is the first.
+Routines move from assembly to C one at a time, each checked call by call
+against its assembly: the game's own in `src/game/`, and libultra's maths
+and `bcopy` in `src/ultra/`. So far these are the matrix and vector maths
+that a match calls most.
 
 | part | on libdragon |
 |---|---|
@@ -31,7 +33,7 @@ call by call against its assembly. The 4x4 matrix product is the first.
 | audio out | yes |
 | flash saves | no |
 | Controller Pak and rumble | no |
-| audio library, maths, C helpers | decide when we get there |
+| audio library, other C helpers | decide when we get there |
 
 ## Building
 
@@ -93,7 +95,7 @@ The entry is longer than the retail one and main text is shorter, so nothing
 after the entry sits at its retail address. `make play` passes on the variant
 with no pad and with a pad of 0x40.
 
-Each `lift/PART.txt` lists routines of the game that `src/game/` gives in C.
+Each `lift/PART.txt` lists routines that `src/game/` or `src/ultra/` gives in C.
 A line `LABEL NAME` takes LABEL out of the source variant and puts our NAME in
 its place, as a replace list does. Each label inside that routine follows on
 a line of its own. The words `int` or `float` after NAME say that the routine
