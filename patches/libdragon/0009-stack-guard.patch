@@ -1,0 +1,19 @@
+--- a/src/kernel/kernel.c
++++ b/src/kernel/kernel.c
+@@ -112,12 +112,13 @@
+ 
+ 	// Check if the stack guard has been corrupted. This indicates that
+ 	// has a stack overflow has happened, even if right now the stack has
+-	// rolled back.
++	// rolled back. The stack grows down into the guard, so an overflow
++	// writes the last word of the guard first: this runs at each switch,
++	// and reads that word alone, which is one line of the data cache.
+ 	if (KERNEL_CHECKS)
+ 	{
+ 		uint64_t *cookie = (uint64_t*)th->stack;
+-		for (int i=0;i<STACK_GUARD/8;i++)
+-			assertf(cookie[i] == STACK_COOKIE, "stack overflow in thread: %s[%p]\nStack guard is corrupted", th->name, th);		
++		assertf(cookie[STACK_GUARD/8-1] == STACK_COOKIE, "stack overflow in thread: %s[%p]\nStack guard is corrupted", th->name, th);
+ 	}
+ }
+ 
