@@ -9,4 +9,11 @@
 // Gives each node of the slot's model its draw pass, by where its bone is.
 void slot_passes(s32 slot);
 
+// Says whether a point is over the ring, where there is one.
+s32 over_ring(float x, float z);
+
+// Lays the shadow of each bone of the slot under it: at the height RING over
+// the ring, and at FLOOR beside it.
+void slot_shadows(SceneNode *shadows, s32 slot, float ring, float floor);
+
 #endif

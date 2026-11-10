@@ -1,2 +1,11 @@
 func_80014F5C slot_passes
 func_80015130
+func_800147DC over_ring int
+func_800148DC
+func_80015540 slot_shadows
+func_80015668
+func_800156C0
+func_800156EC
+func_800157A0
+func_800158D8
+func_800159B0
