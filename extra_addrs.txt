@@ -6,7 +6,6 @@ D_800457B4 = 0x800457B4;
 D_8004795C = 0x8004795C;
 D_800479FC = 0x800479FC;
 D_80047AA0 = 0x80047AA0;
-__osFaultedThread = 0x800537D4;
 game_mode = 0x80097FD8;
 D_800F3688_ovl_a = 0x800F3688; // segment:ovl_a
 D_80104D28_ovl_a = 0x80104D28; // segment:ovl_a

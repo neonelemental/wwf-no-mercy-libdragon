@@ -31,6 +31,11 @@ static volatile int jam_first = -1, jam_tail_ok;
 static volatile int stage, due_ran;
 static u32 fails;
 
+// The words of the game that osInitialize fills.
+s32 D_800A9980, D_80054AF8;
+u8 D_800A5FB4[5], D_8009ED2C[5];
+u64 D_80054AF0 = 62500000;
+
 static void check(bool ok, int bit)
 {
     if (!ok)

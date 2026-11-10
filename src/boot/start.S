@@ -7,11 +7,6 @@
 	.global dragon_start
 	.type dragon_start, @function
 dragon_start:
-	# The status register as the IPL3 left it, which main gives back to the game.
-	mfc0	$t0, $12
-	la	$t1, boot_status
-	sw	$t0, 0($t1)
-
 	# Copy the 0x200 bytes of libdragon's vectors to 0x80000000, then write
 	# back the D-cache and invalidate the I-cache over them.
 	lui	$t0, 0x8000
@@ -57,10 +52,3 @@ dragon_start:
 	j	_start
 	nop
 	.size dragon_start, . - dragon_start
-
-	.section .bss
-	.global boot_status
-	.type boot_status, @object
-boot_status:
-	.space 4
-	.size boot_status, . - boot_status

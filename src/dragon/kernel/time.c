@@ -75,3 +75,7 @@ int osSetTimer(OSTimer *t, OSTime countdown, OSTime interval, OSMesgQueue *mq, O
         kthread_yield();
     return 0;
 }
+
+// libultra's VI manager calls these for its own timer list, which is gone.
+void __osTimerServicesInit(void) {}
+void __osTimerInterrupt(void) {}

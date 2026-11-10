@@ -6,7 +6,9 @@
 #include <kernel.h>
 #include "internal.h"
 
-#define STACK (16 * 1024)
+// The game's largest stack is 16 KB, and libdragon also saves the thread on
+// its stack at each interrupt.
+#define STACK (32 * 1024)
 
 void __kcond_signal_isr(kcond_t *cond);
 
@@ -155,6 +157,8 @@ static int trampoline(void *arg)
     t->state = OS_STATE_RUNNING;
     enable_interrupts();
     kthread_detach(NULL);
+    // libultra's FPU control word: only an invalid operation traps.
+    C1_WRITE_FCR31(t->context.fpcsr);
     void (*entry)(void *) = (void (*)(void *))(uintptr_t)t->context.pc;
     entry((void *)(uintptr_t)(u32)t->context.a0);
     exit_self();

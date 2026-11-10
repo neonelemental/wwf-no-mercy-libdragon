@@ -1,6 +1,6 @@
 """Writes the linker script of one variant from the script of the split.
 
-    python3 tools/link_script.py SPLIT OUT [--source]
+    python3 tools/link_script.py SPLIT OUT [--source LIST...]
 
 It copies SPLIT/nomercy.ld to OUT/nomercy.ld with `. += PAD;` at the start
 of main text, main data, main bss, and the text of ovl_a and ovl_e. ld takes
@@ -22,6 +22,8 @@ With --source, the script is that of a variant that cuts labels:
 It also writes OUT/undefined_funcs.ld and OUT/undefined_syms.ld from the
 lists of the split, with each line in PROVIDE. splat lists symbols that an
 object also defines, and a plain assignment in a script wins over the object.
+A label of a replace LIST gets no line, as PROVIDE would win over our code
+of that name.
 """
 
 import re
@@ -76,28 +78,31 @@ def source(text, split, out):
     return "\n".join(lines) + "\n"
 
 
-def provide(text):
+def provide(text, cut):
     out = []
     for line in text.splitlines():
         m = re.fullmatch(r"\s*(\w+) = (0x[0-9A-Fa-f]+);\s*", line)
-        if m:
+        if m and m.group(1) not in cut:
             out.append(f"PROVIDE({m.group(1)} = {m.group(2)});")
     return "\n".join(out) + "\n"
 
 
 def main():
-    args = [a for a in sys.argv[1:] if a != "--source"]
+    args = sys.argv[1:]
+    lists = args[args.index("--source") + 1 :] if "--source" in args else None
+    args = args[: len(args) - len(lists) - 1] if lists is not None else args
     if len(args) != 2:
-        sys.exit("usage: python3 tools/link_script.py SPLIT OUT [--source]")
+        sys.exit("usage: python3 tools/link_script.py SPLIT OUT [--source LIST...]")
     split, out = Path(args[0]), Path(args[1])
     out.mkdir(parents=True, exist_ok=True)
     text = script((split / "nomercy.ld").read_text())
-    if "--source" in sys.argv:
+    if lists is not None:
         text = source(text, split, out)
     (out / "nomercy.ld").write_text(text)
+    cut = {w[0] for l in lists or [] for line in Path(l).read_text().splitlines() if (w := line.split("#")[0].split())}
     for kind in ("funcs", "syms"):
         text = (split / f"undefined_{kind}_auto.txt").read_text()
-        (out / f"undefined_{kind}.ld").write_text(provide(text))
+        (out / f"undefined_{kind}.ld").write_text(provide(text, cut))
 
 
 if __name__ == "__main__":

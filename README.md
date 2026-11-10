@@ -8,14 +8,18 @@ it back into the retail image. The game files stay binary for now.
 
 ## Status
 
-The game still runs on libultra. In the source variant, libdragon is loaded
-into the Expansion Pak and starts first, then hands the console to the game.
-Each part of libultra moves to it in turn. The source variant needs the
-Expansion Pak: with no pak, it stops before the game starts.
+In the source variant, libdragon is loaded into the Expansion Pak and starts
+first. The game's threads, message queues and interrupts run on libdragon's
+kernel. The rest of the game still runs on libultra, and each part moves to
+libdragon in turn. The source variant needs the Expansion Pak: with no pak, it
+stops before the game starts.
+
+The source variant plays a match in the harness's emulator and boots in ares
+147. No console has run it yet.
 
 | part | on libdragon |
 |---|---|
-| threads, messages, interrupts | no |
+| threads, messages, interrupts | yes |
 | video | no |
 | cartridge reads | no |
 | controllers | no |
@@ -67,10 +71,19 @@ gives `MIPS_NONE` to each word that is a number.
 The source variant boots from `src/boot/boot.S`, which loads libdragon, built
 at o32 and placed at rom 0x2000000, into the Expansion Pak. `src/boot/start.S`
 there does the work of libdragon's IPL3 and goes on to libdragon's `_start`,
-and `src/boot/main.c` then starts the game as the retail entry does. The entry
-is 0x80 bytes longer than the retail one, so main text sits 0x80 bytes after
-its retail place, and main data, main bss and the files 0x100 bytes after
-theirs. `make play` passes on the variant with no pad and with a pad of 0x40.
+and `src/boot/main.c` then starts libdragon's kernel and calls the game's
+entry.
+
+Each `replace/PART.txt` lists labels of the split that the source variant
+leaves out, and `src/dragon/PART/` holds our code in their place.
+`replace/kernel.txt` takes out libultra's kernel: the exception handler, the
+thread dispatch, the boot call, and the thread, queue, event, timer and
+interrupt mask calls. `src/dragon/kernel/` gives each call on libdragon's
+kernel and posts libultra's events from libdragon's interrupts. libultra's
+managers of the VI, the PI and the SI still run, as threads on those calls.
+The entry is longer than the retail one and main text is shorter, so nothing
+after the entry sits at its retail address. `make play` passes on the variant
+with no pad and with a pad of 0x40.
 
 The harness runs a ROM in the image's emulator, as `make` runs there. It
 presses the buttons of a script, saves the pictures that the script asks for,
@@ -80,11 +93,14 @@ and reads the game's memory by the symbols of the ELF beside the ROM:
 
 Of `tests/tools/scripts/`, `menu.txt` boots to the main menu and `match.txt`
 goes on into a single match. `tests/tools/src/main.rs` lists the commands of a
-script. A run fails when a thread of libultra faults, when the game shows no
-new picture for 10 seconds or plays no sound for 30, when a value that the
-script expects is another, and when the script ends without a picture and a
-sound in its last second. It then prints where the CPU is and saves the last
-picture as `failed.png`.
+script. A run fails when libdragon stops the game for a fault or a failed
+assert, when the game shows no new picture for 10 seconds or plays no sound
+for 30, when a value that the script expects is another, and when the script
+ends without a picture and a sound in its last second. It then prints where
+the CPU is and what its registers hold, and saves the last picture as
+`failed.png`. When libdragon stopped the game, that picture is libdragon's
+report of the fault. The retail image has no such report: a fault there shows
+as a picture that stops.
 
 Each run starts on a blank cartridge save and throws its save away. A fourth
 argument names a directory that keeps the save from one run to the next.

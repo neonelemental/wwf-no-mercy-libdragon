@@ -16,10 +16,11 @@
 //!
 //! The symbols are those of the ELF beside the ROM, ROM.elf for ROM.z64.
 //!
-//! The run fails when a thread of libultra faults, when the game shows no new
-//! picture for 10 seconds or plays no sound for 30, and when the script ends
-//! without both in its last second. It then prints where the CPU is and saves
-//! the picture as OUTDIR/failed.png.
+//! The run fails when libdragon stops the game for a fault or a failed assert,
+//! when the game shows no new picture for 10 seconds or plays no sound for 30,
+//! and when the script ends without both in its last second. It then prints
+//! where the CPU is and saves the picture as OUTDIR/failed.png, which holds
+//! libdragon's report when it stopped the game.
 //!
 //! A frame is one vertical interrupt. The emulator finds two of its parts in
 //! this program by name: the input plugin, and the screen of the angrylion
@@ -64,6 +65,7 @@ const PTR_RDRAM: c_int = 1;
 const PTR_VI: c_int = 4;
 const PTR_AI: c_int = 6;
 const CPU_PC: c_int = 1;
+const CPU_REGS: c_int = 2;
 const CPU_COP0: c_int = 5;
 const RDRAM_WORDS: usize = 0x80_0000 / 4;
 
@@ -142,8 +144,10 @@ struct Run {
     height_out: usize,
     picture: Watch,
     sound: Watch,
-    /// Where libultra keeps the thread that faulted, when the ELF names it.
-    faulted: Option<u32>,
+    /// Where libdragon notes that it stopped the game, when the ELF names
+    /// it, and the frame at which it did.
+    inspector: Option<u32>,
+    crashed: Option<u64>,
 }
 
 static RUN: Mutex<Option<Run>> = Mutex::new(None);
@@ -153,6 +157,24 @@ static KEYS: AtomicU32 = AtomicU32::new(0);
 fn fail(text: &str) -> ! {
     eprintln!("harness: {text}");
     exit(1)
+}
+
+/// Says where the CPU is, and what its 32 registers hold.
+unsafe fn cpu() {
+    let pc = *(DebugGetCPUDataPtr(CPU_PC) as *const u32);
+    let cop0 = DebugGetCPUDataPtr(CPU_COP0) as *const u32;
+    eprintln!(
+        "harness: pc {pc:08x} status {:08x} cause {:08x} epc {:08x} badvaddr {:08x}",
+        *cop0.add(12),
+        *cop0.add(13),
+        *cop0.add(14),
+        *cop0.add(8)
+    );
+    let regs = DebugGetCPUDataPtr(CPU_REGS) as *const u64;
+    for row in (0..32).step_by(4) {
+        let four: Vec<String> = (row..row + 4).map(|reg| format!("{:08x}", *regs.add(reg) as u32)).collect();
+        eprintln!("harness: r{row:02} {}", four.join(" "));
+    }
 }
 
 fn check(result: c_int, what: &str) {
@@ -197,8 +219,11 @@ unsafe fn attach(core: *mut c_void, kind: c_int, name: &str) {
     check(CoreAttachPlugin(kind, plugin), name);
 }
 
-/// The address of a symbol of a 32-bit big-endian ELF.
+/// The address of a symbol of a 32-bit big-endian ELF. The compiler puts a
+/// number after the name of a static of a routine (`name.5`), and NAME finds
+/// that one when no symbol has the name alone.
 fn symbol(elf: &[u8], name: &str) -> Option<u32> {
+    let mut numbered = None;
     let word = |at: usize| Some(u32::from_be_bytes(elf.get(at..at + 4)?.try_into().ok()?) as usize);
     let half = |at: usize| Some(u16::from_be_bytes(elf.get(at..at + 2)?.try_into().ok()?) as usize);
     let (sections, size, count) = (word(0x20)?, half(0x2e)?, half(0x30)?);
@@ -210,12 +235,16 @@ fn symbol(elf: &[u8], name: &str) -> Option<u32> {
         let strings = word(sections + word(section + 0x18)? * size + 0x10)?;
         for entry in (symbols..symbols + len).step_by(16) {
             let text = elf.get(strings + word(entry)?..)?;
-            if text.starts_with(name.as_bytes()) && text.get(name.len()) == Some(&0) {
-                return Some(word(entry + 4)? as u32);
+            if text.starts_with(name.as_bytes()) {
+                match text.get(name.len()) {
+                    Some(0) => return Some(word(entry + 4)? as u32),
+                    Some(b'.') => numbered = numbered.or(Some(word(entry + 4)? as u32)),
+                    _ => {}
+                }
             }
         }
     }
-    None
+    numbered
 }
 
 /// The number that the game holds in `bytes` bytes at a KSEG0 address.
@@ -269,16 +298,8 @@ unsafe fn loudest(buffer: u32, len: u32) -> u16 {
 impl Run {
     /// Fails the run: says why and where the CPU is, and saves the picture.
     unsafe fn stopped(&self, frame: u64, why: &str) -> ! {
-        let pc = *(DebugGetCPUDataPtr(CPU_PC) as *const u32);
-        let cop0 = DebugGetCPUDataPtr(CPU_COP0) as *const u32;
         eprintln!("harness: {why}, at frame {frame}");
-        eprintln!(
-            "harness: pc {pc:08x} status {:08x} cause {:08x} epc {:08x} badvaddr {:08x}",
-            *cop0.add(12),
-            *cop0.add(13),
-            *cop0.add(14),
-            *cop0.add(8)
-        );
+        cpu();
         if self.width > 0 && self.height_out > 0 {
             let _ = fs::write(self.out.join("failed.png"), png(self));
         }
@@ -295,11 +316,14 @@ impl Run {
         let (buffer, len) = (*ai & 0xff_ffff, *ai.add(1));
         self.picture.saw(origin, origin.abs_diff(self.picture.last) > 0x1000);
         self.sound.saw(buffer, buffer != self.sound.last && loudest(buffer, len) > 0);
-        // OSThread keeps the pc, cause and badvaddr of its exception from 0x11C.
-        if let Some(thread) = self.faulted.and_then(|at| peek(at, 4)).filter(|&thread| thread != 0) {
-            let saved = |at| peek(thread + at, 4).unwrap_or(0);
-            let (pc, cause, badvaddr) = (saved(0x11c), saved(0x120), saved(0x124));
-            self.stopped(frame, &format!("a thread faulted at pc {pc:08x}, cause {cause:08x} badvaddr {badvaddr:08x}"));
+        // libdragon draws its report of a fault or of a failed assert, which
+        // takes it some seconds. The run goes on until that is the picture.
+        if self.inspector.and_then(|at| peek(at, 1)).is_some_and(|on| on != 0) {
+            let since = *self.crashed.get_or_insert(frame);
+            let drawn = frame - self.picture.quiet > since && self.picture.quiet >= 2;
+            if drawn || frame >= since + STILL {
+                self.stopped(frame, "libdragon stopped the game, and the picture is its report");
+            }
         }
         if self.picture.quiet >= STILL {
             self.stopped(frame, &format!("no new picture for {STILL} frames"));
@@ -557,7 +581,8 @@ fn main() {
         height_out: 0,
         picture: Watch::default(),
         sound: Watch::default(),
-        faulted: elf.as_deref().and_then(|elf| symbol(elf, "__osFaultedThread")),
+        inspector: elf.as_deref().and_then(|elf| symbol(elf, "in_inspector")),
+        crashed: None,
     };
     unsafe { run.next(0) };
     if run.done {
@@ -579,7 +604,9 @@ fn main() {
             thread::sleep(Duration::from_secs(STALL));
             let now = FRAMES.load(Ordering::Relaxed);
             if now == last {
-                fail(&format!("no frame for {STALL} s after frame {now}"));
+                eprintln!("harness: no frame for {STALL} s after frame {now}");
+                unsafe { cpu() };
+                exit(1)
             }
             last = now;
         }

@@ -24,7 +24,8 @@ OBJCOPY := mips64-elf-objcopy
 
 ASFLAGS := -EB -march=vr4300 -mabi=32 -G0 -I $(SPLIT)/include
 CFLAGS  := -mabi=32 -mfp32 -march=vr4300 -mtune=vr4300 -mfix4300 -G0 -O2 -mno-abicalls -fno-pic \
-	-ffreestanding -fno-common -I src/include -I $(LIBDRAGON_O32)/mips64-elf/include
+	-ffreestanding -fno-common -DN64 -DLIBDRAGON_PREVIEW=2 -I src/include \
+	-I $(LIBDRAGON_O32)/mips64-elf/include/newlib_overrides -I $(LIBDRAGON_O32)/mips64-elf/include -include ktls.h
 
 TESTS := $(patsubst %/Makefile,%,$(wildcard tests/*/Makefile))
 
@@ -148,8 +149,8 @@ $(OUT)/obj/%.o: src/%.S
 
 -include $(SRC_O:.o=.d)
 
-$(OUT)/nomercy.ld: $(SPLIT)/.done tools/link_script.py
-	python3 tools/link_script.py $(SPLIT) $(OUT) --source
+$(OUT)/nomercy.ld: $(SPLIT)/.done tools/link_script.py $(REPLACE) $(OUT)/inputs.txt
+	python3 tools/link_script.py $(SPLIT) $(OUT) --source $(REPLACE)
 
 # The link gives the dragon segment a rom past the files when they reach it,
 # so that this check can give both numbers.

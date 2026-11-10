@@ -191,6 +191,7 @@ typedef struct OSTimer_s {
 #define OS_IM_ALL 0x003FFF01
 
 // Words that the IPL3 and libultra keep in low RAM.
+#define osTvType (*(volatile s32 *)0x80000300)
 #define osResetType (*(volatile s32 *)0x8000030C)
 #define osAppNMIBuffer ((u8 *)0x8000031C)
 #define OS_APP_NMI_BUFSIZE 64
@@ -206,6 +207,10 @@ struct ultra_thread {
 extern struct ultra_thread ultra_threads[ULTRA_THREADS];
 
 void osInitialize(void);
+
+// Starts libdragon's kernel and timers, and posts libultra's events from
+// libdragon's interrupts. main calls it once, before the game.
+void ultra_start(void);
 
 void osCreateThread(OSThread *t, OSId id, void (*entry)(void *), void *arg, void *sp, OSPri pri);
 void osStartThread(OSThread *t);

@@ -1,0 +1,73 @@
+# libultra's kernel, which src/dragon/kernel gives on libdragon. A label with
+# no name is a routine of the same name there, or a part of one.
+
+# The exception handler, its jump table, and the thread dispatch.
+func_8003C760
+func_8003CCA4
+func_8003CCBC
+func_8003CCEC
+func_8003CDDC
+func_8003CEE4
+func_8003CF2C
+func_8003CF3C
+func_8003CF44
+D_8003D0C0
+D_80056420
+jtbl_80056440
+
+# The boot call, and each routine that only it reaches.
+osInitialize
+func_8003C6F8
+func_8003C710
+func_8003E260
+func_8003E280
+func_8003E2A0
+func_8003E2B0
+func_8003E2C0
+func_8003E3D0
+func_8003E420
+func_8003E550
+func_8003E5B0
+
+# The interrupt mask.
+__osDisableInt
+__osRestoreInt
+osSetIntMask
+
+# Threads.
+osCreateThread
+osGetThreadPri
+osSetThreadPri
+osStartThread
+func_80037784
+func_800377D8
+func_80037800
+func_8003782C
+func_80037840 osYieldThread
+osDestroyThread
+func_8003E4B8
+func_8003E514
+
+# Queues and events.
+osCreateMesgQueue
+osJamMesg
+func_80036CA0
+osRecvMesg
+func_80036DD4
+osSendMesg
+func_80036F0C
+osSetEventMesg
+
+# Time and timers.
+osGetTime
+osGetCount
+func_80037920 osSetTimer
+func_80037A00
+func_80037A50 __osTimerServicesInit
+func_80037AA4 __osTimerInterrupt
+func_80037AC4
+func_80037BD0
+func_80037BE0
+func_80037C60
+func_80037CC8
+func_8003E290
