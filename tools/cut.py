@@ -12,6 +12,14 @@ Each line of a list is `LABEL`, or `LABEL NAME` when our code gives NAME in its
 place. For each `LABEL NAME`, OUT/../defsyms.txt gets `--defsym LABEL=NAME`, so
 that each reference to LABEL goes to NAME.
 
+The code writes some doubles by their halves, the high half through an odd
+FPU register. That works only with the FR bit of the status register clear.
+So it changes each such pair of `mtc1` to one write of the whole double,
+which works with the bit clear or set, in the same two words. A pair of
+`$zero` becomes `dmtc1 $zero` and a `nop`. A pair at an address of
+double_addrs.txt, whose low half is always zero, becomes `dsll32 $at` of its
+high half and `dmtc1 $at`. Any other access through an odd register stops it.
+
 It writes a file only when its text changes, so make assembles only what the
 cut changes.
 """
@@ -22,6 +30,10 @@ from pathlib import Path
 
 START = re.compile(r"\s*(?:glabel|alabel|dlabel)\s+([\w.$]+)")
 ABOVE = re.compile(r"\s*(?:$|/\*.*\*/\s*$|nonmatching\s)")
+# An instruction of the split: its comment of rom, vram and word, then its text.
+WORD = re.compile(r"(\s*/\* \w+ (\w{8}) \w{8} \*/\s+)(.*)")
+ODD = re.compile(r"\$f[a-z]+\d+f\b")
+HALF = re.compile(r"mtc1\s+(\$\w+), (\$f[a-z]+\d+)(f?)")
 
 
 def lists(paths):
@@ -65,6 +77,29 @@ def cut(text, labels, found):
     return "".join(line for line, k in zip(lines, keep) if k)
 
 
+def doubles(text, high):
+    """Changes each write of a double by its halves to one write of all of it."""
+    lines = text.splitlines(keepends=True)
+    for i, line in enumerate(lines):
+        if not ODD.search(line):
+            continue
+        low, top = WORD.match(lines[i - 1]), WORD.match(line)
+        a = HALF.fullmatch(low.group(3).strip()) if low else None
+        b = HALF.fullmatch(top.group(3).strip()) if top else None
+        if not (a and b and not a.group(3) and b.group(3) and a.group(2) == b.group(2)):
+            sys.exit(f"cut.py: {line.strip()}: an odd FPU register outside a pair of mtc1")
+        reg = a.group(2)
+        if a.group(1) == b.group(1) == "$zero":
+            new = [f"dmtc1      $zero, {reg}", "nop"]
+        elif int(low.group(2), 16) in high:
+            new = [f"dsll32     $at, {b.group(1)}, 0", f"dmtc1      $at, {reg}"]
+        else:
+            sys.exit(f"cut.py: 0x{low.group(2)}: a double by its halves that double_addrs.txt does not give")
+        lines[i - 1] = low.group(1) + new[0] + "\n"
+        lines[i] = top.group(1) + new[1] + "\n"
+    return "".join(lines)
+
+
 def write(path, text):
     if not path.is_file() or path.read_text() != text:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,10 +111,11 @@ def main():
         sys.exit("usage: python3 tools/cut.py SPLIT OUT LIST...")
     split, out = Path(sys.argv[1]), Path(sys.argv[2])
     labels = lists(sys.argv[3:])
+    high = {int(w[0], 16) for line in Path("double_addrs.txt").read_text().splitlines() if (w := line.split("#")[0].split())}
     found = set()
     sources = sorted((split / "asm").rglob("*.s"))
     for source in sources:
-        write(out / source.relative_to(split), cut(source.read_text(), labels, found))
+        write(out / source.relative_to(split), doubles(cut(source.read_text(), labels, found), high))
     # A file that the split no longer has would still be assembled and linked.
     wanted = {out / s.relative_to(split) for s in sources}
     for old in (out / "asm").rglob("*.s"):

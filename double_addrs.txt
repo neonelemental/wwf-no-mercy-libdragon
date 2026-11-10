@@ -1,0 +1,7 @@
+# Each address where the game writes a double by its halves from two registers,
+# and the low half is always zero: the double is the constant 1.0. tools/cut.py
+# makes each one a single write of the whole double, through $at.
+0x800351C8
+0x80035268
+0x80035540
+0x800355DC

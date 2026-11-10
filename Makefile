@@ -129,7 +129,7 @@ $(OUT)/inputs.txt: FORCE
 	@mkdir -p $(@D)
 	@echo '$(REPLACE) $(SRC)' | cmp -s - $@ || echo '$(REPLACE) $(SRC)' > $@
 
-$(OUT)/split/.done: $(SPLIT)/.done tools/cut.py $(REPLACE) $(OUT)/inputs.txt
+$(OUT)/split/.done: $(SPLIT)/.done tools/cut.py double_addrs.txt $(REPLACE) $(OUT)/inputs.txt
 	python3 tools/cut.py $(SPLIT) $(OUT)/split $(REPLACE)
 	touch $@
 
