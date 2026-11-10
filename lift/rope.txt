@@ -1,0 +1,3 @@
+func_80021B10 rope_side
+func_80021B9C
+func_80021CC4
