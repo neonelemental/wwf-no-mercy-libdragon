@@ -16,12 +16,13 @@ A --lift list gives routines of the game that our C gives. Its line
 `LABEL NAME` is cut as above, with the labels alone on the lines after it,
 which are inside that routine. The words `int` or `float` after NAME say that
 the routine gives a result, and `near` that our C may differ from the
-assembly by 1 in a word or in each byte of it.
+assembly by 1 in a word or in each byte of it. `waits` says that the routine
+waits, or calls one that does, so that no check can run it.
 
---check names routines of the lift lists by NAME, or each of them by `all`.
-The assembly of such a routine stays, with the name old_LABEL, and
-OUT/../checks.txt gets its line, from which tools/thunks.py writes the LABEL
-that runs both.
+--check names routines of the lift lists by NAME, or each of them by `all`,
+which leaves out those that wait. The assembly of such a routine stays, with
+the name old_LABEL, and OUT/../checks.txt gets its line, from which
+tools/thunks.py writes the LABEL that runs both.
 
 The code writes some doubles by their halves, the high half through an odd
 FPU register. That works only with the FR bit of the status register clear.
@@ -62,7 +63,8 @@ def lists(paths):
     return labels
 
 
-MARKS = {"int": 0x100, "float": 0x200, "near": 0x400}
+MARKS = {"int": 0x100, "float": 0x200, "near": 0x400, "waits": 0x800}
+WAITS = MARKS["waits"]
 
 
 def lifts(paths):
@@ -77,7 +79,7 @@ def lifts(paths):
             elif len(words) > 1 and all(w in MARKS for w in words[2:]):
                 routines.append((words[0], words[1], sum(MARKS[w] for w in set(words[2:])), []))
             elif words:
-                sys.exit(f"cut.py: {path}:{n}: give LABEL NAME [int|float] [near], then each label inside it")
+                sys.exit(f"cut.py: {path}:{n}: give LABEL NAME [int|float] [near] [waits], then each label inside it")
     return routines
 
 
@@ -162,9 +164,12 @@ def main():
     unknown = sorted(set(check) - {"all"} - {name for _, name, _, _ in routines})
     if unknown:
         sys.exit(f"cut.py: no routine {', '.join(unknown)} in the lift lists")
+    waiting = sorted(name for _, name, marks, _ in routines if marks & WAITS and name in check)
+    if waiting:
+        sys.exit(f"cut.py: {', '.join(waiting)} waits, so no check can run it")
     kept, checks = set(), []
     for label, name, marks, inner in routines:
-        checked = "all" in check or name in check
+        checked = not marks & WAITS and ("all" in check or name in check)
         new = {} if checked else {label: name, **dict.fromkeys(inner)}
         if label in kept or (set(new) | {label}) & set(labels):
             sys.exit(f"cut.py: {label} or a label inside it is in two lists")

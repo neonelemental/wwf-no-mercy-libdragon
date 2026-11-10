@@ -19,9 +19,11 @@ The source variant plays a match in the harness's emulator and boots in ares
 147. No console has run it yet.
 
 Routines move from assembly to C one at a time, each checked call by call
-against its assembly: the game's own in `src/game/`, and libultra's maths
-and `bcopy` in `src/ultra/`. So far these are the matrix and vector maths
-that a match calls most.
+against its assembly where the check can run it: the game's own in
+`src/game/`, and libultra's maths and `bcopy` in `src/ultra/`. So far these
+are the matrix and vector maths that a match calls most, the passes over the
+nodes and objects of the scene, the model of a wrestler from its animation
+data, and the ring with its ropes.
 
 | part | on libdragon |
 |---|---|
@@ -101,7 +103,8 @@ A line `LABEL NAME` takes LABEL out of the source variant and puts our NAME in
 its place, as a replace list does. Each label inside that routine follows on
 a line of its own. The words `int` or `float` after NAME say that the routine
 gives a result, and `near` that our C is meant to differ from the assembly by
-1 in a word, or in each byte of one.
+1 in a word, or in each byte of one. `waits` says that the routine waits, or
+calls one that does.
 
 `make source CHECK=NAME` builds `build/check/`, where the assembly of that
 routine stays beside our C, and `make play CHECK=NAME` plays it. Each call
@@ -114,8 +117,10 @@ check, and when 100, 10,000 and 1,000,000 of its calls were the same. `CHECK`
 takes names with commas between them, or `all`.
 
 A routine under the check must not wait, wake another thread or write to a
-device, as the check cannot take those back. It can take four arguments on
-the stack, and the check does not compare the stack under its caller. A call
+device, as the check cannot take those back. `CHECK=all` leaves out each
+routine that its list marks `waits`, and `CHECK` refuses its name: the plays
+alone test our C of it. A checked routine can take four arguments on the
+stack, and the check does not compare the stack under its caller. A call
 from inside a checked run goes to the assembly alone, so a routine that only
 checked routines call needs a run with its own name. The check build runs
 only in the harness's emulator.

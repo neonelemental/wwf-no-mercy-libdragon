@@ -1,4 +1,13 @@
 func_800135D0 pose_read int
 func_80013858
+func_800132D8 anim_read waits
 func_80012BE0 joint_chain
 func_80012EA8
+func_80012130 model_update waits
+func_80012208
+func_80012260
+func_80012464
+func_8012F9CC fighter_model waits
+func_8012FA24_ovl_e
+func_8012FA78 model_loop waits
+func_8012FB88_ovl_e
