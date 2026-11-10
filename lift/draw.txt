@@ -1,0 +1,2 @@
+func_800024F8 draw_in_view int
+func_80002598
