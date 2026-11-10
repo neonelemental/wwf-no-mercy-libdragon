@@ -6,6 +6,24 @@ libultra to [libdragon](https://github.com/n64brew/libdragon).
 The build splits the main code and data of the game into assembly and links
 it back into the retail image. The game files stay binary for now.
 
+## Status
+
+The game still runs on libultra. libdragon is linked into the source variant
+and loaded into the Expansion Pak, and each part of libultra moves to it in
+turn.
+
+| part | on libdragon |
+|---|---|
+| threads, messages, interrupts | no |
+| video | no |
+| cartridge reads | no |
+| controllers | no |
+| RSP tasks | no |
+| audio out | no |
+| flash saves | no |
+| Controller Pak and rumble | no |
+| audio library, maths, C helpers | decide when we get there |
+
 ## Building
 
 You need git, Docker and your own copy of WWF No Mercy (USA) (Rev 1):
