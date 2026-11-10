@@ -1,0 +1,2 @@
+func_80002268 scene_walk
+func_800022A8
