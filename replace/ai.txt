@@ -1,0 +1,12 @@
+# libultra's AI calls, which src/dragon/ai gives on the AI registers. A label
+# with no name is a routine of the same name there, or a part of one.
+
+osAiGetLength
+osAiGetStatus
+osAiSetFrequency
+func_800307BC
+osAiSetNextBuffer
+func_800308AC
+
+# __osAiDeviceBusy, which only osAiSetNextBuffer called.
+func_8003D760
