@@ -1,6 +1,10 @@
 //! Boots a ROM in mupen64plus and plays a script on it.
 //!
-//!     harness ROM SCRIPT OUTDIR
+//!     harness ROM SCRIPT OUTDIR [SAVES]
+//!
+//! The game starts on a blank cartridge save and the run throws its save
+//! away. With SAVES, the save is kept in that directory: the game finds the
+//! one that an earlier run left there, and leaves its own.
 //!
 //! A script holds one command on each line, and `#` starts a comment:
 //!
@@ -55,7 +59,7 @@ const TYPE_STRING: c_int = 4;
 const PLUGIN_RSP: c_int = 1;
 const PLUGIN_GFX: c_int = 2;
 const PLUGIN_INPUT: c_int = 4;
-const MSG_WARNING: c_int = 2;
+const MSG_ERROR: c_int = 1;
 const PTR_RDRAM: c_int = 1;
 const PTR_VI: c_int = 4;
 const PTR_AI: c_int = 6;
@@ -162,7 +166,7 @@ fn cstring(text: &str) -> CString {
 }
 
 extern "C" fn message(_context: *mut c_void, level: c_int, text: *const c_char) {
-    if level <= MSG_WARNING {
+    if level <= MSG_ERROR {
         eprintln!("mupen64plus: {}", unsafe { CStr::from_ptr(text) }.to_string_lossy());
     }
 }
@@ -530,8 +534,8 @@ pub extern "C" fn SDL_KeyUp(_modifiers: c_int, _key: c_int) {}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 4 {
-        eprintln!("usage: harness ROM SCRIPT OUTDIR");
+    if args.len() != 4 && args.len() != 5 {
+        eprintln!("usage: harness ROM SCRIPT OUTDIR [SAVES]");
         exit(2)
     }
     let read = |path: &String| fs::read(path).unwrap_or_else(|error| fail(&format!("{path}: {error}")));
@@ -561,10 +565,11 @@ fn main() {
     }
     *RUN.lock().unwrap() = Some(run);
 
-    // The core keeps its settings and the game's save here; each run starts with neither.
+    // The core keeps its settings here, and the game's save when no SAVES is given.
     let work = env::temp_dir().join(format!("harness-{}", process::id()));
     fs::create_dir_all(&work).unwrap_or_else(|error| fail(&format!("{}: {error}", work.display())));
     let work_c = cstring(&work.to_string_lossy());
+    let saves_c = cstring(args.get(4).map_or(&*work.to_string_lossy(), |saves| saves));
     env::set_var("SDL_VIDEODRIVER", "dummy");
     env::set_var("SDL_AUDIODRIVER", "dummy");
 
@@ -596,7 +601,7 @@ fn main() {
         let (pure, no): (c_int, c_int) = (0, 0);
         set("Core", "R4300Emulator", TYPE_INT, &pure as *const c_int as *const c_void);
         set("Core", "RandomizeInterrupt", TYPE_BOOL, &no as *const c_int as *const c_void);
-        set("Core", "SaveSRAMPath", TYPE_STRING, work_c.as_ptr() as *const c_void);
+        set("Core", "SaveSRAMPath", TYPE_STRING, saves_c.as_ptr() as *const c_void);
         check(CoreDoCommand(CMD_ROM_OPEN, rom.len() as c_int, rom.as_ptr() as *mut c_void), "opening the ROM");
 
         let core = open("libmupen64plus.so.2");

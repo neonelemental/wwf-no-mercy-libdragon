@@ -54,6 +54,7 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make check` | `make match`, then checks the SHA1 of the image |
 | `make tests` | builds libdragon into `build/libdragon/` and each test ROM into `tests/NAME/build/NAME.z64` |
 | `make harness` | builds the test harness of `tests/tools` into `build/harness/release/harness` |
+| `make play` | plays `build/source/nomercy.z64` in the harness: a boot, a match and a boot on the save of the match. `make play VARIANT=match` plays the retail image |
 | `make clean` | removes everything the build wrote |
 
 `symbol_addrs.txt` names each routine of the main code, and `extra_addrs.txt`
@@ -79,6 +80,12 @@ new picture for 10 seconds or plays no sound for 30, when a value that the
 script expects is another, and when the script ends without a picture and a
 sound in its last second. It then prints where the CPU is and saves the last
 picture as `failed.png`.
+
+Each run starts on a blank cartridge save and throws its save away. A fourth
+argument names a directory that keeps the save from one run to the next.
+`make play` uses it: the first boot formats the save, the match must write to
+it, and the last boot must leave the save of the match as it is, which a boot
+that could not read it does not.
 
 `tests/hello` is a ROM that prints `hello from libdragon`. `tests/boot` starts
 libdragon from the IPL3 of `baserom.z64`, with libdragon built at o32; it runs
