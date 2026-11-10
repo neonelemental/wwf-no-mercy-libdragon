@@ -94,9 +94,10 @@ and reads the game's memory by the symbols of the ELF beside the ROM:
 Of `tests/tools/scripts/`, `menu.txt` boots to the main menu and `match.txt`
 goes on into a single match. `tests/tools/src/main.rs` lists the commands of a
 script. A run fails when libdragon stops the game for a fault or a failed
-assert, when the game shows no new picture for 10 seconds or plays no sound
-for 30, when a value that the script expects is another, and when the script
-ends without a picture and a sound in its last second. It then prints where
+assert, when the game reads or writes outside RDRAM through the cache, which
+stops the CPU of a console, when the game shows no new picture for 10 seconds
+or plays no sound for 30, when a value that the script expects is another,
+and when the script ends without a picture and a sound in its last second. It then prints where
 the CPU is and what its registers hold, and saves the last picture as
 `failed.png`. When libdragon stopped the game, that picture is libdragon's
 report of the fault. The retail image has no such report: a fault there shows

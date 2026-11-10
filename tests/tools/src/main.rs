@@ -17,8 +17,9 @@
 //! The symbols are those of the ELF beside the ROM, ROM.elf for ROM.z64.
 //!
 //! The run fails when libdragon stops the game for a fault or a failed assert,
-//! when the game shows no new picture for 10 seconds or plays no sound for 30,
-//! and when the script ends without both in its last second. It then prints
+//! when the game reads or writes outside RDRAM through the cache, when the
+//! game shows no new picture for 10 seconds or plays no sound for 30, and
+//! when the script ends without both in its last second. It then prints
 //! where the CPU is and saves the picture as OUTDIR/failed.png, which holds
 //! libdragon's report when it stopped the game.
 //!
@@ -31,7 +32,7 @@
 use std::ffi::{c_char, c_int, c_uint, c_ulong, c_void, CStr, CString};
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::time::Duration;
 use std::{env, fs, process, ptr, thread};
@@ -153,6 +154,8 @@ struct Run {
 static RUN: Mutex<Option<Run>> = Mutex::new(None);
 static FRAMES: AtomicU64 = AtomicU64::new(0);
 static KEYS: AtomicU32 = AtomicU32::new(0);
+/// The emulator saw an access that stops the CPU of a console.
+static FROZEN: AtomicBool = AtomicBool::new(false);
 
 fn fail(text: &str) -> ! {
     eprintln!("harness: {text}");
@@ -189,7 +192,11 @@ fn cstring(text: &str) -> CString {
 
 extern "C" fn message(_context: *mut c_void, level: c_int, text: *const c_char) {
     if level <= MSG_ERROR {
-        eprintln!("mupen64plus: {}", unsafe { CStr::from_ptr(text) }.to_string_lossy());
+        let text = unsafe { CStr::from_ptr(text) }.to_string_lossy();
+        eprintln!("mupen64plus: {text}");
+        if text.starts_with("cached access outside RDRAM") {
+            FROZEN.store(true, Ordering::Relaxed);
+        }
     }
 }
 
@@ -324,6 +331,9 @@ impl Run {
             if drawn || frame >= since + STILL {
                 self.stopped(frame, "libdragon stopped the game, and the picture is its report");
             }
+        }
+        if FROZEN.load(Ordering::Relaxed) {
+            self.stopped(frame, "a cached access outside RDRAM, which stops the CPU of a console");
         }
         if self.picture.quiet >= STILL {
             self.stopped(frame, &format!("no new picture for {STILL} frames"));
