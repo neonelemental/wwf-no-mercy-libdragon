@@ -16,4 +16,8 @@ s32 over_ring(float x, float z);
 // the ring, and at FLOOR beside it.
 void slot_shadows(SceneNode *shadows, s32 slot, float ring, float floor);
 
+// The shadows of a slot, laid and placed in the scene. In an entrance it
+// also steps the change of shape of the slot's node 20.
+void slot_tick(s32 slot, float ring, float floor);
+
 #endif

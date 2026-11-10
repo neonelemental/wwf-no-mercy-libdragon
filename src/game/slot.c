@@ -16,11 +16,25 @@ extern float D_80048088[POSE_JOINTS];
 // Not 0 for a slot that casts shadows.
 extern u8 D_80076260[MODEL_SLOTS];
 
+// The shadows of each slot: a node for each joint of a pose.
+extern SceneNode D_80071DA0[MODEL_SLOTS][POSE_JOINTS];
+// What each slot shows. Bit 2 of the first byte: node 20 is changing shape.
+extern u8 D_800A8BD4[MODEL_SLOTS][0x270];
+// That change, for each slot: how far it is, from 0 to 1, its step, and the
+// ticks between two steps with those left to the next.
+extern float D_80076CC0[MODEL_SLOTS];
+extern float D_80076CD0[MODEL_SLOTS];
+extern u16 D_80076CE0[MODEL_SLOTS];
+extern u16 D_80076CE8[MODEL_SLOTS];
+// The mesh of each node of each slot's model.
+extern u8 D_800A4050[MODEL_SLOTS][MODEL_NODES][0x34];
+
 // Routines of the game that are still assembly.
 void func_800151A0(SceneNode *node, float x, float y, float z);  // the draw pass of a node whose bone is there
 void func_800111F4(Matrix m, float x, float y, float z, float *out_x, float *out_z);  // a point through a matrix, less its y
 s32 func_8001EB04(void);
 float func_8012DDD8(float x, float z, void *found);              // the height of the place's ground there, or 0
+void func_80010C84(s32 slot, u8 *mesh, float share);             // moves a mesh a share of the way to its other shape
 
 // The game's absolute value, which keeps a zero's sign.
 static inline float absf(float x)
@@ -157,4 +171,33 @@ void slot_shadows(SceneNode *shadows, s32 slot, float ring, float floor)
         shadow->local[3][1] = y;
         shadow->local[3][2] = joint->world[2];
     }
+}
+
+void slot_tick(s32 slot, float ring, float floor)
+{
+    s32 i = (s16)slot;
+    SceneNode *shadows = D_80071DA0[i];
+    slot_shadows(shadows, i, ring, floor);
+    scene_walk(shadows);
+    if (game_mode != 3 || !(D_800A8BD4[i][0] & 4)) {
+        return;
+    }
+    if (D_80076CE8[i]) {
+        D_80076CE8[i]--;
+        return;
+    }
+    float step = D_80076CD0[i];
+    float share = D_80076CC0[i] + step;
+    D_80076CC0[i] = share;
+    if (0.0f < step) {
+        if (1.0f <= share) {
+            D_80076CC0[i] = 1.0f;
+            D_800A8BD4[i][0] &= ~4;
+        }
+    } else if (share <= 0.0f) {
+        D_80076CC0[i] = 0.0f;
+        D_800A8BD4[i][0] &= ~4;
+    }
+    D_80076CE8[i] = D_80076CE0[i];
+    func_80010C84(i, D_800A4050[i][20], D_80076CC0[i]);
 }
