@@ -1,0 +1,5 @@
+func_80036460 ultra_sinf float
+func_80036538
+func_800365F8
+func_80034EF0 ultra_cosf float
+func_80035038
