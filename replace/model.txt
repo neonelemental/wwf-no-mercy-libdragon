@@ -7,3 +7,7 @@ func_80012130 model_update
 func_80012208
 func_80012260
 func_80012464
+func_8012F9CC fighter_model
+func_8012FA24_ovl_e
+func_8012FA78 model_loop
+func_8012FB88_ovl_e

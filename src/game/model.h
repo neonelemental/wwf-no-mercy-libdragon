@@ -97,6 +97,38 @@ typedef struct {
 
 ULTRA_SIZE(ModelPlace, 0x10);
 
+// A wrestler of a match.
+typedef struct {
+    u8 unknown00[0x82];
+    u16 flags;            // bit 3: the model leans by angle[0] and angle[2]
+    u8 unknown84[0x1A];
+    s16 slot;             // of its model
+    s16 id;               // -1 with no wrestler
+    s16 left;             // the frames of the file still to play
+    s16 frame;
+    s16 file;
+    u8 unknownA8[0x54];
+    float place[3];
+    s32 angle[3];         // about x, y and z, 4096 to a turn
+    u8 unknown114[0x1D9];
+    u8 loop;              // the file starts again at its end
+    u8 unknown2EE[0x6A];
+} Fighter;
+
+ULTRA_SIZE(Fighter, 0x358);
+ULTRA_AT(Fighter, flags, 0x82);
+ULTRA_AT(Fighter, slot, 0x9E);
+ULTRA_AT(Fighter, id, 0xA0);
+ULTRA_AT(Fighter, left, 0xA2);
+ULTRA_AT(Fighter, frame, 0xA4);
+ULTRA_AT(Fighter, file, 0xA6);
+ULTRA_AT(Fighter, place, 0xFC);
+ULTRA_AT(Fighter, angle, 0x108);
+ULTRA_AT(Fighter, loop, 0x2ED);
+
+// The wrestlers of the match, in overlay ovl_e.
+extern Fighter D_80159990_ovl_e[MODEL_SLOTS];
+
 // Reads the pose of one joint: a word of three angles, then its place when
 // the word says so. Gives the byte after the pose.
 u8 *pose_read(u8 *data, float angle[3], float place[3]);
@@ -113,5 +145,9 @@ void joint_chain(s32 slot);
 // NULL, turns the head. FLAGS: 1 keeps the wrestler in place over a change of
 // file, 2 eases into a new file, 8 keeps its height too.
 void model_update(s32 slot, s32 file, s32 frame, ModelPlace *at, float *look, s32 flags, s32 lean_x, s32 lean_z);
+
+// Updates the model of one wrestler of the match, and of each.
+void fighter_model(Fighter *fighter, float *look, s32 flags);
+void model_loop(void);
 
 #endif

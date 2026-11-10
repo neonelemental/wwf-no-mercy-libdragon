@@ -26,6 +26,9 @@ extern float D_8004800C[3];
 
 // The slot before D_8009FDE0 stands D_800A9352 higher.
 extern u16 D_8009FDE0, D_800A9352;
+// The flags of each wrestler's model, and where each looks.
+extern s32 D_801593D8_ovl_e[MODEL_SLOTS];
+extern float D_801593A8_ovl_e[MODEL_SLOTS][3];
 
 // Routines of the game that are still assembly.
 void func_80010FC4(Matrix m, float x, float y, float z);        // sets the place of a matrix
@@ -42,6 +45,8 @@ void func_80013EB0(s32 slot);                                    // stops the so
 void func_80013234(s32 slot);                                    // puts the pose in the joints as it is
 void func_80012F48(s32 slot, s32 frame, s32 flags);              // eases from the last file
 void func_80013860(s32 slot, s32 frame);                         // the events of a frame
+s32 func_8012FBD0(s32 fighter, float *look);                     // where a wrestler looks
+void func_8012F980(Fighter *fighter, s32 file, s32 flags);       // starts a file
 
 static u32 word(const u8 *p)
 {
@@ -299,5 +304,45 @@ void model_update(s32 slot_word, s32 file_word, s32 frame_word, ModelPlace *at, 
     }
     if (anim->fresh) {
         anim->fresh = 0;
+    }
+}
+
+void fighter_model(Fighter *fighter, float *look, s32 flags)
+{
+    ModelPlace at = { fighter->place[0], fighter->place[1], fighter->place[2], fighter->angle[1] };
+    s32 lean_x = 0, lean_z = 0;
+    if (fighter->flags & 8) {
+        lean_x = fighter->angle[0];
+        lean_z = fighter->angle[2];
+    }
+    model_update(fighter->slot, fighter->file, fighter->frame, &at, look, (s8)flags, lean_x, lean_z);
+    fighter->place[0] = at.x;
+    fighter->place[1] = at.y;
+    fighter->place[2] = at.z;
+}
+
+void model_loop(void)
+{
+    for (int i = 0; i < MODEL_SLOTS; i++) {
+        Fighter *fighter = &D_80159990_ovl_e[i];
+        if (fighter->id == -1) {
+            continue;
+        }
+        float *look = D_801593A8_ovl_e[i];
+        if (!func_8012FBD0(i, look)) {
+            look = NULL;
+        }
+        if (fighter->left <= 0) {
+            if (!fighter->loop) {
+                fighter_model(fighter, look, D_801593D8_ovl_e[i]);
+                continue;
+            }
+            func_8012F980(fighter, fighter->file, 0);
+        }
+        fighter_model(fighter, look, D_801593D8_ovl_e[i]);
+        if (fighter->left > 0) {
+            fighter->frame = fighter->frame + 1;
+            fighter->left = fighter->left - 1;
+        }
     }
 }
