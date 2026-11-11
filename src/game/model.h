@@ -86,7 +86,8 @@ ULTRA_SIZE(ModelPlace, 0x10);
 typedef struct {
     u8 unknown00[0x08];
     s32 opponent;         // the wrestler that it faces
-    u8 unknown0C[0x08];
+    s32 partner;          // its partner in a tag match, or itself
+    u8 unknown10[0x04];
     s32 state;            // what it does, and for how long
     s32 state_time;
     u8 unknown1C[0x28];
@@ -98,7 +99,9 @@ typedef struct {
     u16 flags80;          // bit 3: its oval is that of its body, not a round one
     // bit 3: the model leans by angle[0] and angle[2]; bit 10: on a wall
     u16 flags;
-    u8 unknown84[0x06];
+    u16 flags84;
+    u16 flags86;
+    u16 flags88;
     // bit 8: the head turns to the opponent; bit 13: its oval is that of
     // its body; bit 6: no wrestler touches it
     u16 flags8A;
@@ -108,15 +111,29 @@ typedef struct {
     s16 left;             // the frames of the file still to play
     s16 frame;
     s16 file;
-    u8 unknownA8[0x41];
+    // Numbers of the wrestler that the console reads, with the five of
+    // meter2C4. What they measure is not known.
+    u8 unknownA8[0x02];
+    s16 meterAA;
+    u8 unknownAC[0x02];
+    s16 meterAE;
+    u8 unknownB0[0x04];
+    s16 meterB4;
+    u8 unknownB6[0x33];
     u8 flagsE9;
-    u8 unknownEA[0x12];
+    u8 unknownEA[0x04];
+    u8 flagsEE;
+    u8 unknownEF[0x0D];
     float place[3];
     s32 angle[3];         // about x, y and z, 4096 to a turn
     // The world point of each joint as the tick began, with the middle of
     // those of joints 1 and 22 for joint 1.
     float point[POSE_JOINTS][3];
-    u8 unknown204[0xE9];
+    u8 unknown204[0xC0];
+    float meter2C4[5];
+    u8 unknown2D8[0x0C];
+    u8 *profile;          // the data of the wrestler; the console reads 0x19 to 0x27 and 0x34
+    u8 unknown2E8[0x05];
     u8 loop;              // the file starts again at its end
     u8 unknown2EE[0x6A];
 } Fighter;
@@ -128,6 +145,7 @@ ULTRA_AT(Fighter, touching, 0x44);
 ULTRA_AT(Fighter, wall_by, 0x60);
 ULTRA_AT(Fighter, wall, 0x64);
 ULTRA_AT(Fighter, flags80, 0x80);
+ULTRA_AT(Fighter, flags84, 0x84);
 ULTRA_AT(Fighter, flags, 0x82);
 ULTRA_AT(Fighter, flags8A, 0x8A);
 ULTRA_AT(Fighter, slot, 0x9E);
@@ -135,10 +153,16 @@ ULTRA_AT(Fighter, id, 0xA0);
 ULTRA_AT(Fighter, left, 0xA2);
 ULTRA_AT(Fighter, frame, 0xA4);
 ULTRA_AT(Fighter, file, 0xA6);
+ULTRA_AT(Fighter, meterAA, 0xAA);
+ULTRA_AT(Fighter, meterAE, 0xAE);
+ULTRA_AT(Fighter, meterB4, 0xB4);
 ULTRA_AT(Fighter, flagsE9, 0xE9);
+ULTRA_AT(Fighter, flagsEE, 0xEE);
 ULTRA_AT(Fighter, place, 0xFC);
 ULTRA_AT(Fighter, angle, 0x108);
 ULTRA_AT(Fighter, point, 0x114);
+ULTRA_AT(Fighter, meter2C4, 0x2C4);
+ULTRA_AT(Fighter, profile, 0x2E4);
 ULTRA_AT(Fighter, loop, 0x2ED);
 
 // The wrestlers of the match, in overlay ovl_e.

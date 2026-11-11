@@ -1,0 +1,13 @@
+func_800F03F0 cpu_control
+func_800F097C_ovl_e
+func_800F09EC_ovl_e
+func_800F09F8_ovl_e
+func_800F0B40_ovl_e
+func_800F0C2C_ovl_e
+func_800F0CB8_ovl_e
+jtbl_8014EA38_ovl_e
+func_800FD188 cpu_senses
+func_800FD3A4_ovl_e
+func_800FD4B0_ovl_e
+jtbl_8014FB98_ovl_e
+func_800FD6DC cpu_noisy float
