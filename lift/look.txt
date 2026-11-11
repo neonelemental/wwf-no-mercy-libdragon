@@ -1,0 +1,2 @@
+func_8012FBD0 fighter_look int
+func_8012FEC0_ovl_e

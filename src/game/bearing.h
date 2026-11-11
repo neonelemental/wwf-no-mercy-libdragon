@@ -67,4 +67,35 @@ inline float distance_to(const float *from, const float *to)
 // Fills out, when it is not NULL, and gives the length with no y.
 float bearing_between(const float *from, const float *to, Bearing *out);
 
+// Four small routines of the game, which stay assembly for their other
+// callers: func_8012E11C with func_8012E13C, func_8012E294, func_8012E158 and
+// func_8012E0F0.
+
+// The sum of two angles, from -2048 to 2047.
+static inline s32 turn_sum(s32 a, s32 b)
+{
+    u32 sum = ((u32)a + (u32)b) & 0xFFF;
+    return (s32)(sum & 0x800 ? sum | 0xFFFFF000 : sum);
+}
+
+// The way from the angle b to the angle a, by the shorter side.
+static inline s32 turn_between(s32 a, s32 b)
+{
+    s32 way = (s32)((u32)a - (u32)b);
+    if ((way < 0 ? (s32)-(u32)way : way) < 0x801) {
+        return way;
+    }
+    return way < 0 ? way + 0x1000 : way - 0x1000;
+}
+
+static inline float turn_radians(s32 turn)
+{
+    return (float)((double)turn * 0x1.921fb54442d18p-10);
+}
+
+static inline float flat_absf(float x)
+{
+    return 0.0 <= (double)x ? x : -x;
+}
+
 #endif

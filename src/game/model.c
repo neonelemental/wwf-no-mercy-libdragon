@@ -1,6 +1,7 @@
 #include "model.h"
 
 #include "gu.h"
+#include "look.h"
 
 // An angle of the animation data, 1024 to a turn, in degrees.
 static const double ANGLE = 360.0 / 1024;
@@ -45,7 +46,6 @@ void func_80013EB0(s32 slot);                                    // stops the so
 void func_80013234(s32 slot);                                    // puts the pose in the joints as it is
 void func_80012F48(s32 slot, s32 frame, s32 flags);              // eases from the last file
 void func_80013860(s32 slot, s32 frame);                         // the events of a frame
-s32 func_8012FBD0(s32 fighter, float *look);                     // where a wrestler looks
 void func_8012F980(Fighter *fighter, s32 file, s32 flags);       // starts a file
 
 static u32 word(const u8 *p)
@@ -329,7 +329,7 @@ void model_loop(void)
             continue;
         }
         float *look = D_801593A8_ovl_e[i];
-        if (!func_8012FBD0(i, look)) {
+        if (!fighter_look(i, look)) {
             look = NULL;
         }
         if (fighter->left <= 0) {

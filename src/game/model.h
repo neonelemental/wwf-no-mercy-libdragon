@@ -84,9 +84,13 @@ ULTRA_SIZE(ModelPlace, 0x10);
 
 // A wrestler of a match.
 typedef struct {
-    u8 unknown00[0x82];
+    u8 unknown00[0x08];
+    s32 opponent;         // the wrestler that it faces
+    u8 unknown0C[0x76];
     u16 flags;            // bit 3: the model leans by angle[0] and angle[2]
-    u8 unknown84[0x1A];
+    u8 unknown84[0x06];
+    u16 flags8A;          // bit 8: the head turns to the opponent
+    u8 unknown8C[0x12];
     s16 slot;             // of its model
     s16 id;               // -1 with no wrestler
     s16 left;             // the frames of the file still to play
@@ -95,13 +99,18 @@ typedef struct {
     u8 unknownA8[0x54];
     float place[3];
     s32 angle[3];         // about x, y and z, 4096 to a turn
-    u8 unknown114[0x1D9];
+    // The world point of each joint as the tick began, with the middle of
+    // those of joints 1 and 22 for joint 1.
+    float point[POSE_JOINTS][3];
+    u8 unknown204[0xE9];
     u8 loop;              // the file starts again at its end
     u8 unknown2EE[0x6A];
 } Fighter;
 
 ULTRA_SIZE(Fighter, 0x358);
+ULTRA_AT(Fighter, opponent, 0x08);
 ULTRA_AT(Fighter, flags, 0x82);
+ULTRA_AT(Fighter, flags8A, 0x8A);
 ULTRA_AT(Fighter, slot, 0x9E);
 ULTRA_AT(Fighter, id, 0xA0);
 ULTRA_AT(Fighter, left, 0xA2);
@@ -109,6 +118,7 @@ ULTRA_AT(Fighter, frame, 0xA4);
 ULTRA_AT(Fighter, file, 0xA6);
 ULTRA_AT(Fighter, place, 0xFC);
 ULTRA_AT(Fighter, angle, 0x108);
+ULTRA_AT(Fighter, point, 0x114);
 ULTRA_AT(Fighter, loop, 0x2ED);
 
 // The wrestlers of the match, in overlay ovl_e.
