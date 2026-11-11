@@ -132,10 +132,20 @@ of the status register set. The game's assembly keeps the o32 calls of the
 retail game, so `tools/thunks.py` writes a thunk for each call between the
 two, and `src/thunks/hand.S` holds the ones that pass a 64-bit value.
 `src/dragon/kernel/calls.S` holds a shorter thunk for each of the three calls
-that a frame makes most. The retail code also writes some doubles by their
+that a frame makes most. A thunk lies in the object of our C that it serves:
+one into our C beside the routine that it calls, and one into the assembly
+beside its caller. The retail code also writes some doubles by their
 halves, which works only with the FR bit clear: `tools/cut.py` makes each one
 a single write of the whole double, at the places it finds and those of
 `double_addrs.txt`.
+
+`dragon.ld` gives the order of our code in the link, as where code lies
+decides which routines push each other out of the instruction cache. The
+code of a thread switch and of an interrupt comes first, then our device
+parts, libdragon and libc, which no lift changes. The lifted C comes last,
+file by file in a written order, so that a file that grows moves only the
+files after it. A file that the order does not name goes behind all the
+others, and moves none of them. The game's assembly keeps its own order.
 
 The harness runs a ROM in the image's emulator, as `make` runs there. It
 presses the buttons of a script, saves the pictures that the script asks for,

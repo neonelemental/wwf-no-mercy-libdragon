@@ -30,8 +30,14 @@ assembly had, compares what the two left, and leaves what the assembly left,
 which is also what the caller gets. A call from inside such a run goes to the
 assembly alone.
 
-It writes OUT/thunk/thunks.S, and a copy of each --c object under OUT/thunk/
-with each name changed.
+A thunk sits in the object of our C that it serves: a thunk into our C beside
+the routine that it calls, and a thunk into the assembly beside its caller,
+with a copy in each object that calls it. So where a thunk lies against its
+routine depends on that one file alone.
+
+For each --c object it writes, under OUT/thunk/, a copy NAME.c.o with each
+name changed and the thunks NAME.S. The Makefile links the two into NAME.o.
+OUT/thunk/thunks.S holds what belongs to no object of our C.
 """
 
 import subprocess
@@ -40,6 +46,7 @@ from pathlib import Path
 
 TO_C = """\
 	.globl	{name}
+	.type	{name}, @function
 {name}:
 	addiu	$sp, $sp, -80
 	sd	$31, 72($sp)
@@ -58,6 +65,7 @@ TO_C = """\
 	ld	$31, 72($sp)
 	jr	$31
 	addiu	$sp, $sp, 80
+	.size	{name}, . - {name}
 
 """
 
@@ -65,6 +73,7 @@ SAVED = [16, 17, 18, 19, 20, 21, 22, 23, 30, 31]
 
 TO_ASM = """\
 	.globl	asm_{name}
+	.type	asm_{name}, @function
 asm_{name}:
 	addiu	$sp, $sp, -112
 {save}	ld	$8, 144($sp)
@@ -81,6 +90,7 @@ asm_{name}:
 	nop
 {load}	jr	$31
 	addiu	$sp, $sp, 112
+	.size	asm_{name}, . - asm_{name}
 
 """
 
@@ -101,6 +111,7 @@ STACK = """\
 # each run in $2 and $f0, and the steps 1, 2 and 3 with the marks.
 CHECK = """\
 	.globl	{label}
+	.type	{label}, @function
 {label}:
 	lui	$1, %hi(lift_checking)
 	lw	$1, %lo(lift_checking)($1)
@@ -168,6 +179,7 @@ CHECK = """\
 	ld	$31, 32($sp)
 	jr	$31
 	addiu	$sp, $sp, 128
+	.size	{label}, . - {label}
 	.section .rodata
 2:	.asciz	"{name} ({label})"
 	.section .text
@@ -177,6 +189,7 @@ CHECK = """\
 CHECKING = """\
 	.section .bss
 	.align	2
+	.globl	lift_checking
 lift_checking:
 	.space	4
 """
@@ -206,7 +219,9 @@ def main():
     hand = args[args.index("--hand") + 1 :]
 
     split_defined, split_undefined = symbols(nm, split)
-    c_defined, c_undefined = symbols(nm, ours)
+    found = {obj: symbols(nm, [obj]) for obj in ours}
+    c_defined = set().union(*(defined for defined, _ in found.values()))
+    c_undefined = set().union(*(undefined for _, undefined in found.values()))
     hand_defined, _ = symbols(nm, hand)
     named = [line.split("=")[1].strip() for line in (out / "defsyms.txt").read_text().splitlines() if "=" in line]
     checks = [line.split() for line in (out / "checks.txt").read_text().splitlines()]
@@ -216,28 +231,32 @@ def main():
     to_c = sorted(c_defined & (split_undefined | set(named) | {name for _, name, _ in checks}))
     to_asm = sorted(c_undefined & split_defined)
 
-    text = "# Written by tools/thunks.py.\n\t.set\tnoreorder\n\t.set\tnoat\n\t.section .text\n\n"
-    for name in to_c:
-        if name not in hand_defined:
-            text += TO_C.format(name=name)
+    head = "# Written by tools/thunks.py.\n\t.set\tnoreorder\n\t.set\tnoat\n\t.section .text\n\n"
     save = "".join(f"\tsd\t${reg}, {32 + 8 * i}($sp)\n" for i, reg in enumerate(SAVED))
     load = "".join(f"\tld\t${reg}, {32 + 8 * i}($sp)\n" for i, reg in enumerate(SAVED))
-    for name in to_asm:
-        text += TO_ASM.format(name=name, save=save, load=load)
-    for label, name, marks in checks:
-        text += CHECK.format(label=label, name=name, marks=marks, stack=STACK)
-    if checks:
-        text += CHECKING
+
+    def check(defined):
+        return "".join(CHECK.format(label=label, name=name, marks=marks, stack=STACK)
+                       for label, name, marks in checks if name in defined)
+
     thunk = out / "thunk"
     thunk.mkdir(parents=True, exist_ok=True)
-    (thunk / "thunks.S").write_text(text)
     names = thunk / "names.txt"
     names.write_text("".join(f"{n} c_{n}\n" for n in to_c) + "".join(f"{n} asm_{n}\n" for n in to_asm))
     for obj in ours:
+        defined, undefined = found[obj]
+        text = head
+        for name in to_c:
+            if name in defined and name not in hand_defined:
+                text += TO_C.format(name=name)
+        for name in to_asm:
+            if name in undefined:
+                text += TO_ASM.format(name=name, save=save, load=load)
         copy = thunk / Path(obj).relative_to(out / "obj")
         copy.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run([objcopy, f"--redefine-syms={names}", obj, str(copy)], check=True)
-
+        copy.with_suffix(".S").write_text(text + check(defined))
+        subprocess.run([objcopy, f"--redefine-syms={names}", obj, str(copy.with_suffix(".c.o"))], check=True)
+    (thunk / "thunks.S").write_text(head + check(hand_defined - c_defined) + (CHECKING if checks else ""))
 
 if __name__ == "__main__":
     main()

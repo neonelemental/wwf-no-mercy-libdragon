@@ -34,6 +34,27 @@ SECTIONS
         *(.text.kthread_current .text.disable_interrupts .text.enable_interrupts)
         *(.text.__MI_handler .text.get_ticks)
         */dragon/kernel/*.o(.text)
+        */thunks/hand.o(.text)
+        /* The rest of our code that no lift changes, then libdragon and libc. */
+        */boot/*.o(.text .text.*)
+        */dragon/*.o(.text .text.*)
+        *(EXCLUDE_FILE(*/split/* */obj/* */thunk/*) .text .text.*)
+        /* The lifted C comes last, in this order: the maths that the rest
+         * calls, then the parts of a frame. Each object holds its thunks. A
+         * file that grows moves only the files after it. */
+        */ultra/trig.o(.text .text.*)
+        */ultra/gu.o(.text .text.*)
+        */ultra/bcopy.o(.text .text.*)
+        */game/matrix.o(.text .text.*)
+        */game/angle.o(.text .text.*)
+        */game/scene.o(.text .text.*)
+        */game/model.o(.text .text.*)
+        */game/rope.o(.text .text.*)
+        */game/slot.o(.text .text.*)
+        */game/draw.o(.text .text.*)
+        */game/tick.o(.text .text.*)
+        /* A file that no line names goes here, behind all the others, so
+         * that it moves none of them. */
         *(EXCLUDE_FILE(*/split/*) .text .text.*)
         KEEP(*(keep.text.*))
         *(.init)

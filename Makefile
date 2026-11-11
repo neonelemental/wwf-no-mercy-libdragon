@@ -135,14 +135,16 @@ REPLACE := $(wildcard replace/*.txt)
 LIFT    := $(wildcard lift/*.txt)
 comma   := ,
 PARTS   := $(basename $(notdir $(REPLACE)))
-SRC     := $(filter-out src/dragon/%,$(shell find src -name '*.c' -o -name '*.S')) \
-	$(foreach p,$(PARTS),$(shell find src/dragon/$(p) -name '*.c' -o -name '*.S' 2>/dev/null))
+SRC     := $(sort $(filter-out src/dragon/%,$(shell find src -name '*.c' -o -name '*.S')) \
+	$(foreach p,$(PARTS),$(shell find src/dragon/$(p) -name '*.c' -o -name '*.S' 2>/dev/null)))
 SRC_O   := $(patsubst src/%,$(OUT)/obj/%,$(addsuffix .o,$(basename $(SRC))))
 CUT_O   := $(patsubst $(SPLIT)/asm/%,$(OUT)/split/obj/asm/%.o,$(filter $(SPLIT)/asm/%,$(SPLIT_S)))
 # Our C goes into the link through tools/thunks.py, and our assembly as it is.
+# dragon.ld gives the place of each object in the link.
 C_O     := $(patsubst src/%.c,$(OUT)/obj/%.o,$(filter %.c,$(SRC)))
 S_O     := $(patsubst src/%.S,$(OUT)/obj/%.o,$(filter %.S,$(SRC)))
-OURS_O  := $(S_O) $(patsubst $(OUT)/obj/%,$(OUT)/thunk/%,$(C_O)) $(OUT)/thunk/thunks.o
+THUNK_O := $(patsubst $(OUT)/obj/%,$(OUT)/thunk/%,$(C_O))
+OURS_O  := $(S_O) $(THUNK_O) $(OUT)/thunk/thunks.o
 LINK_O  := $(CUT_O) $(filter-out $(SPLIT)/obj/$(SPLIT)/asm/%,$(SPLIT_O)) $(OURS_O)
 
 LIBC    := $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)
@@ -181,10 +183,17 @@ $(OUT)/thunk/.done: $(C_O) $(S_O) $(CUT_O) tools/thunks.py $(OUT)/split/.done $(
 	python3 tools/thunks.py $(OUT) $(NM) $(OBJCOPY) --split $(CUT_O) --c $(C_O) --hand $(S_O)
 	touch $@
 
-$(OUT)/thunk/thunks.S $(patsubst $(OUT)/obj/%,$(OUT)/thunk/%,$(C_O)): $(OUT)/thunk/.done ;
+$(OUT)/thunk/thunks.S: $(OUT)/thunk/.done ;
 
 $(OUT)/thunk/thunks.o: $(OUT)/thunk/thunks.S
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+# An object of our C and its thunks, as one object. Two objects can each hold
+# a thunk into the same routine of the assembly, so its name stays inside.
+$(THUNK_O): $(OUT)/thunk/%.o: $(OUT)/thunk/.done
+	$(CC) $(CFLAGS) -c -o $(@:.o=.t.o) $(@:.o=.S)
+	$(LD) -m elf32ebmip -r -o $@ $(@:.o=.c.o) $(@:.o=.t.o)
+	$(OBJCOPY) -w -L 'asm_*' $@
 
 $(OUT)/nomercy.ld: $(SPLIT)/.done tools/link_script.py $(REPLACE) $(LIFT) $(OUT)/inputs.txt
 	python3 tools/link_script.py $(SPLIT) $(OUT) --source $(REPLACE) $(LIFT)
