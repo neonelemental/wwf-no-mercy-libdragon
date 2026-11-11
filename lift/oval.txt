@@ -3,3 +3,7 @@ func_8012E65C_ovl_e
 func_8012E664_ovl_e
 func_8012E888_ovl_e
 func_8012EA20_ovl_e
+func_8012E434 oval_reach float
+func_8012E564_ovl_e
+func_8012E374 way_turned
+func_8012E3B8_ovl_e

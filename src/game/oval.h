@@ -19,5 +19,12 @@ ULTRA_AT(Oval, angle, 0x18);
 // the longest of four lines through the body, at least 29.7. For a wrestler
 // on a wall, that wall is the floor.
 void fighter_oval(Fighter *fighter, Oval *oval);
+// How far an oval reaches from its centre toward a point. A half size of 0
+// becomes 0.1.
+float oval_reach(Oval *oval, const float *to);
+
+// A way turned about y by an angle, added to a place when place is not NULL.
+// It gives x and z, and leaves the y of out as it is.
+void way_turned(const float *place, const float *way, s32 angle, float *out);
 
 #endif

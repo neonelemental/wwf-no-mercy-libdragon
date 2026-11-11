@@ -1,0 +1,8 @@
+func_8012C474 pair_push int
+func_8012C660_ovl_e
+func_8012C6EC_ovl_e
+func_8012C72C_ovl_e
+func_8012C78C_ovl_e
+func_800EBD2C pair_list
+func_800EBDEC_ovl_e
+func_800EBF58_ovl_e

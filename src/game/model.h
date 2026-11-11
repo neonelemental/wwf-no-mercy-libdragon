@@ -86,20 +86,31 @@ ULTRA_SIZE(ModelPlace, 0x10);
 typedef struct {
     u8 unknown00[0x08];
     s32 opponent;         // the wrestler that it faces
-    u8 unknown0C[0x58];
+    u8 unknown0C[0x08];
+    s32 state;            // what it does, and for how long
+    s32 state_time;
+    u8 unknown1C[0x28];
+    s32 touching;         // the thing that it lies over, 100 and its number
+    u8 unknown48[0x18];
+    s32 wall_by;          // the wall of another wrestler must be this one to touch it
     s32 wall;             // the wall that it is on, with bit 10 of flags
-    u8 unknown68[0x1A];
+    u8 unknown68[0x18];
+    u16 flags80;          // bit 3: its oval is that of its body, not a round one
     // bit 3: the model leans by angle[0] and angle[2]; bit 10: on a wall
     u16 flags;
     u8 unknown84[0x06];
-    u16 flags8A;          // bit 8: the head turns to the opponent
+    // bit 8: the head turns to the opponent; bit 13: its oval is that of
+    // its body; bit 6: no wrestler touches it
+    u16 flags8A;
     u8 unknown8C[0x12];
     s16 slot;             // of its model
     s16 id;               // -1 with no wrestler
     s16 left;             // the frames of the file still to play
     s16 frame;
     s16 file;
-    u8 unknownA8[0x54];
+    u8 unknownA8[0x41];
+    u8 flagsE9;
+    u8 unknownEA[0x12];
     float place[3];
     s32 angle[3];         // about x, y and z, 4096 to a turn
     // The world point of each joint as the tick began, with the middle of
@@ -112,7 +123,11 @@ typedef struct {
 
 ULTRA_SIZE(Fighter, 0x358);
 ULTRA_AT(Fighter, opponent, 0x08);
+ULTRA_AT(Fighter, state, 0x14);
+ULTRA_AT(Fighter, touching, 0x44);
+ULTRA_AT(Fighter, wall_by, 0x60);
 ULTRA_AT(Fighter, wall, 0x64);
+ULTRA_AT(Fighter, flags80, 0x80);
 ULTRA_AT(Fighter, flags, 0x82);
 ULTRA_AT(Fighter, flags8A, 0x8A);
 ULTRA_AT(Fighter, slot, 0x9E);
@@ -120,6 +135,7 @@ ULTRA_AT(Fighter, id, 0xA0);
 ULTRA_AT(Fighter, left, 0xA2);
 ULTRA_AT(Fighter, frame, 0xA4);
 ULTRA_AT(Fighter, file, 0xA6);
+ULTRA_AT(Fighter, flagsE9, 0xE9);
 ULTRA_AT(Fighter, place, 0xFC);
 ULTRA_AT(Fighter, angle, 0x108);
 ULTRA_AT(Fighter, point, 0x114);

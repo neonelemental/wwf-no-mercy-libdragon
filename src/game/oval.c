@@ -1,12 +1,10 @@
 #include "oval.h"
 
 #include "bearing.h"
+#include "gu.h"
 
 // The four joints that give the oval of a wrestler on a wall.
 extern s8 D_8014DAB0_ovl_e[4];
-
-// Turns a way about y by an angle and adds it to a place, or to no place.
-void func_8012E374(float *place, float *way, s32 angle, float *out);
 
 static float length_of(Bearing *one, Bearing *two)
 {
@@ -102,6 +100,46 @@ void fighter_oval(Fighter *fighter, Oval *oval)
     along[0] = 0.0f;
     along[1] = 0.0f;
     along[2] = oval->half[2];
-    func_8012E374(middle, along, oval->angle, oval->centre);
+    way_turned(middle, along, oval->angle, oval->centre);
     oval->centre[1] = 0.0f;
+}
+
+void way_turned(const float *place, const float *way, s32 angle, float *out)
+{
+    float x = 0.0f, z = 0.0f;
+    if (place) {
+        x = place[0];
+        z = place[2];
+    }
+    float c = ultra_cosf(turn_radians(angle));
+    float s = ultra_sinf(turn_radians(angle));
+    float wx = way[0], wz = way[2];
+    out[0] = x + (wx * c + wz * s);
+    out[2] = z + (wz * c - wx * s);
+}
+
+float oval_reach(Oval *oval, const float *to)
+{
+    if ((double)oval->half[0] == 0.0) {
+        oval->half[0] = 0.1f;
+    }
+    if ((double)oval->half[2] == 0.0) {
+        oval->half[2] = 0.1f;
+    }
+    // The way to the point, as the oval lies.
+    float way[3], own[3];
+    point_way(oval->centre, to, way);
+    way_turned(NULL, way, turn_between(0, oval->angle), own);
+    if ((double)own[0] == 0.0) {
+        return oval->half[2];
+    }
+    if ((double)own[2] == 0.0) {
+        return oval->half[0];
+    }
+    float slope = own[2] / own[0];
+    float across = oval->half[0] * oval->half[0];
+    float along = oval->half[2] * oval->half[2];
+    float x = along / (along / across + slope * slope);
+    float z = (float)((1.0 - (double)(x / across)) * (double)along);
+    return __builtin_sqrtf(x + z);
 }
