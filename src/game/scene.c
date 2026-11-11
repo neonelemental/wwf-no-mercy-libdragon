@@ -16,9 +16,6 @@ void scene_walk(SceneNode *node)
     }
 }
 
-// The first object of each node that draws, and their count.
-extern SceneObject *D_80060BA0[900];
-extern s16 D_800619B2;
 // The view matrix by the projection matrix.
 extern Matrix D_80062BA8;
 

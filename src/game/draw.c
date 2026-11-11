@@ -2,10 +2,8 @@
 
 extern inline s32 draw_in_view(SceneObject *object);
 
-// The first object of each node that draws, and their count.
-extern SceneObject *D_80060BA0[900];
-extern s16 D_800619B2;
-// The pass of each of them this frame: 0xFF once it has its place in the order.
+// The pass of each chain of D_80060BA0 this frame: 0xFF once it has its place
+// in the order.
 extern u8 D_800619B8[900];
 // The chains in the order that they draw in, and their count.
 extern SceneObject *D_80061D40[900];

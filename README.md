@@ -23,7 +23,9 @@ against its assembly where the check can run it: the game's own in
 `src/game/`, and libultra's maths and `bcopy` in `src/ultra/`. So far these
 are the matrix and vector maths that a match calls most, the passes over the
 nodes and objects of the scene, the model of a wrestler from its animation
-data, and the ring with its ropes.
+data, the ring with its ropes, the passes over each wrestler's slot, the tick
+of a match, and the draw side: the draw order, the display lists and the loop
+of the graphics thread.
 
 | part | on libdragon |
 |---|---|

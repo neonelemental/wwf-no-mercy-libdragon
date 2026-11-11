@@ -85,6 +85,10 @@ ULTRA_AT(SceneObject, vertices, 0x30);
 ULTRA_AT(SceneObject, list, 0x34);
 ULTRA_AT(SceneObject, mtx, 0x38);
 
+// The first object of each node that draws, and their count.
+extern SceneObject *D_80060BA0[900];
+extern s16 D_800619B2;
+
 // A float as an unsigned word, the way the game's compiler converts one.
 static inline u32 float_to_u32(float f)
 {
