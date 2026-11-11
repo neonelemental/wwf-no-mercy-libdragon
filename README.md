@@ -146,8 +146,9 @@ and reads the game's memory by the symbols of the ELF beside the ROM:
 Of `tests/tools/scripts/`, `menu.txt` boots to the main menu, `match.txt`
 goes on into a single match, and `long.txt` plays 25 seconds of that match
 and profiles them. `tag.txt` does the same in a tag match, with four
-wrestlers. `tests/tools/src/main.rs` lists the commands of a
-script. A run fails when libdragon stops the game for a fault or a failed
+wrestlers. `cage.txt` plays a cage match and climbs each wall, which runs
+code of the ring that no other script reaches. `tests/tools/src/main.rs`
+lists the commands of a script. A run fails when libdragon stops the game for a fault or a failed
 assert, when the game reads or writes outside RDRAM through the cache, which
 stops the CPU of a console, when the game shows no new picture for 10 seconds
 or plays no sound for 30, when a value that the script expects is another,

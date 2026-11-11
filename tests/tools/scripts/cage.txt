@@ -1,0 +1,58 @@
+# From a cold boot into an exhibition cage match, The Rock against a CPU The
+# Rock, and 43 seconds past the bell: player 1 walks to each wall of the cage
+# in turn and climbs it.
+run 400          # the legal screen is up
+press start 6    # skips the intro
+run 494
+shot title
+press start 6    # the Rumble Pak notice
+run 200
+press a 6
+run 200
+shot menu        # Multi Play, on Exhibition
+press a 6        # Single Match
+run 200
+press down 6     # Tag Match
+run 40
+press down 6     # Triple Threat Match
+run 40
+press down 6     # Handicap Match
+run 40
+press down 6     # Cage Match
+run 40
+shot kind
+press start 6    # Decision
+run 1200
+press a 6        # player 1 takes The Rock
+run 150
+press a 6        # and so does the CPU
+run 150
+shot card
+press start 6    # starts the entrances
+run 2600
+shot bell
+expect u8 game_mode 1    # the match
+run 60
+press left 150
+press left+cup 20
+run 240
+shot left
+press right 260
+press right+cup 20
+run 240
+shot right
+press up 200
+press up+cup 20
+run 240
+shot far
+press down 260
+press down+cup 20
+run 240
+shot near
+press left 260
+press left+cup 20
+run 120
+shot climb
+run 240
+shot end
+read u32 D_80097EC0      # bit 0x10000 is set in a cage match
