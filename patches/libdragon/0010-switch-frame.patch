@@ -1,0 +1,183 @@
+--- a/src/inthandler.S
++++ b/src/inthandler.S
+@@ -60,8 +60,17 @@
+ #define STACK_FC31   (STACK_EPC+4)
+ #define STACK_FPR    (STACK_FC31+4)
+ 
++	# A thread that gives up the CPU does it by SYSCALL 0x0 (KTHREAD_SWITCH),
++	# and gets the short frame of switch_save. k0 and k1 are free up to the
++	# point where EXL is cleared.
++	mfc0 k0, C0_CAUSE
+ 	addiu sp, -EXC_STACK_SIZE
++	andi k1, k0, CAUSE_EXC_MASK
++	xori k1, CAUSE_EXC_SYSCALL
++	beqz k1, syscall_entry
++	sd $31,(STACK_GPR+31*8)(sp) # RA
+ 
++save_caller_regs:
+ 	# Save caller-saved GPRs only. These are the only
+ 	# ones required to call a C function from assembly, as the
+ 	# others (callee-saved) would be preserved by the function 
+@@ -84,7 +93,6 @@
+ 	sd $15,(STACK_GPR+15*8)(sp) # T7
+ 	sd $24,(STACK_GPR+24*8)(sp) # T8
+ 	sd $25,(STACK_GPR+25*8)(sp) # T9
+-	sd $31,(STACK_GPR+31*8)(sp) # RA
+ 
+ 	mflo t0
+ 	mfhi t1
+@@ -320,7 +328,17 @@
+ 	jal __kthread_syscall_schedule
+ 	addiu a0, sp, 32
+ 	addiu sp, v0, -32
+-	# fallthrough to end_exception_restore_all
++
++	# The thread to run has a short frame if it gave up the CPU itself, and
++	# a full frame if an interrupt took the CPU from it, or if it never ran.
++	# The cause that its frame holds tells the two apart.
++	lw t0, STACK_CR(sp)
++	andi t0, CAUSE_EXC_MASK
++	xori t0, CAUSE_EXC_SYSCALL
++	bnez t0, end_exception_restore_all
++	nop
++	j switch_restore
++	nop
+ 
+ end_exception_restore_all:
+ 	# Restore also caller-saved registers. These are only saved during an exception
+@@ -419,6 +437,115 @@
+ 	eret
+ 
+ 	.p2align 5
++syscall_entry:
++	# k0 holds the cause. Only SYSCALL 0x0 switches thread: any other
++	# syscall takes the full frame, and so does one in a delay slot, where
++	# EPC is at the branch.
++	.set noat
++	mfc0 k1, C0_EPC
++	lw k1, 0(k1)
++	addiu k1, -0x000C
++	bnez k1, save_caller_regs
++	nop
++	.set at
++
++switch_save:
++	# KTHREAD_SWITCH names each register that a call may change as
++	# clobbered, so the thread needs back only what a call keeps: s0-s7,
++	# gp, sp, fp, ra, f20-f31 and FCR31, with SR and EPC. RA is saved
++	# already. The frame is laid out as the full one, and the rest of it is
++	# left as it was.
++	sw k0, STACK_CR(sp)
++	mfc0 t0, C0_EPC
++	mfc0 t1, C0_SR
++	sw t0, STACK_EPC(sp)
++	sw t1, STACK_SR(sp)
++
++	# As above: EXL off for reentrant exceptions, interrupts off, kernel
++	# mode. The FPU is on, to save and load its registers.
++	and t1, ~(SR_IE | SR_EXL | SR_KSU)
++	or t1, SR_CU1
++	mtc0 t1, C0_SR
++
++	sd $16,(STACK_GPR+16*8)(sp)   # S0
++	sd $17,(STACK_GPR+17*8)(sp)   # S1
++	sd $18,(STACK_GPR+18*8)(sp)   # S2
++	sd $19,(STACK_GPR+19*8)(sp)   # S3
++	sd $20,(STACK_GPR+20*8)(sp)   # S4
++	sd $21,(STACK_GPR+21*8)(sp)   # S5
++	sd $22,(STACK_GPR+22*8)(sp)   # S6
++	sd $23,(STACK_GPR+23*8)(sp)   # S7
++	sd $28,(STACK_GPR+28*8)(sp)   # GP
++	addiu t0, sp, EXC_STACK_SIZE
++	sd t0, (STACK_GPR+29*8)(sp)   # SP
++	sd $30,(STACK_GPR+30*8)(sp)   # FP
++	cfc1 t0, $f31
++	sw t0, STACK_FC31(sp)
++	sdc1 $f20,(STACK_FPR+20*8)(sp)
++	sdc1 $f21,(STACK_FPR+21*8)(sp)
++	sdc1 $f22,(STACK_FPR+22*8)(sp)
++	sdc1 $f23,(STACK_FPR+23*8)(sp)
++	sdc1 $f24,(STACK_FPR+24*8)(sp)
++	sdc1 $f25,(STACK_FPR+25*8)(sp)
++	sdc1 $f26,(STACK_FPR+26*8)(sp)
++	sdc1 $f27,(STACK_FPR+27*8)(sp)
++	sdc1 $f28,(STACK_FPR+28*8)(sp)
++	sdc1 $f29,(STACK_FPR+29*8)(sp)
++	sdc1 $f30,(STACK_FPR+30*8)(sp)
++	sdc1 $f31,(STACK_FPR+31*8)(sp)
++
++	# Call the scheduler
++	jal __kthread_syscall_schedule
++	addiu a0, sp, 32
++	addiu sp, v0, -32
++
++	# A full frame loads as before. The FPU is on here, as end_interrupt
++	# wants for the FPU registers of that frame.
++	lw t0, STACK_CR(sp)
++	andi t0, CAUSE_EXC_MASK
++	xori t0, CAUSE_EXC_SYSCALL
++	bnez t0, end_exception_restore_all
++	nop
++
++switch_restore:
++	# Load a short frame. The FPU is on: both paths into here turn it on.
++	ldc1 $f20,(STACK_FPR+20*8)(sp)
++	ldc1 $f21,(STACK_FPR+21*8)(sp)
++	ldc1 $f22,(STACK_FPR+22*8)(sp)
++	ldc1 $f23,(STACK_FPR+23*8)(sp)
++	ldc1 $f24,(STACK_FPR+24*8)(sp)
++	ldc1 $f25,(STACK_FPR+25*8)(sp)
++	ldc1 $f26,(STACK_FPR+26*8)(sp)
++	ldc1 $f27,(STACK_FPR+27*8)(sp)
++	ldc1 $f28,(STACK_FPR+28*8)(sp)
++	ldc1 $f29,(STACK_FPR+29*8)(sp)
++	ldc1 $f30,(STACK_FPR+30*8)(sp)
++	ldc1 $f31,(STACK_FPR+31*8)(sp)
++	lw t0, STACK_FC31(sp)
++	ctc1 t0, $f31
++
++	# Restore SR, which sets EXL again, and EPC.
++	lw t0, STACK_SR(sp)
++	lw t1, STACK_EPC(sp)
++	mtc0 t0, C0_SR
++	mtc0 t1, C0_EPC
++
++	ld $16,(STACK_GPR+16*8)(sp)   # S0
++	ld $17,(STACK_GPR+17*8)(sp)   # S1
++	ld $18,(STACK_GPR+18*8)(sp)   # S2
++	ld $19,(STACK_GPR+19*8)(sp)   # S3
++	ld $20,(STACK_GPR+20*8)(sp)   # S4
++	ld $21,(STACK_GPR+21*8)(sp)   # S5
++	ld $22,(STACK_GPR+22*8)(sp)   # S6
++	ld $23,(STACK_GPR+23*8)(sp)   # S7
++	ld $28,(STACK_GPR+28*8)(sp)   # GP
++	ld $30,(STACK_GPR+30*8)(sp)   # FP
++	ld $31,(STACK_GPR+31*8)(sp)   # RA
++	addiu sp, EXC_STACK_SIZE
++	eret
++	.set noat
++
++	.p2align 5
+ finalize_exception_frame:
+ 	sd $0, (STACK_GPR+ 0*8)(sp)   # ZR (this is mostly for register dumps)
+ 	sd $16,(STACK_GPR+16*8)(sp)   # S0
+--- a/src/kernel/kernel.c
++++ b/src/kernel/kernel.c
+@@ -37,8 +37,16 @@
+  * that force a context switch like #kthread_yield.
+  *
+  * Do not call this under interrupt; use #KTHREAD_SWITCH_ISR instead.
++ *
++ * The interrupt handler saves for this syscall only the registers that a
++ * function call keeps, so the macro names all the others as clobbered.
+  */
+-#define KTHREAD_SWITCH()      __asm("syscall 0x0")
++#define KTHREAD_SWITCH()      __asm volatile("syscall 0x0" : : : \
++	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10", "$11", \
++	"$12", "$13", "$14", "$15", "$24", "$25", "hi", "lo", \
++	"$f0", "$f1", "$f2", "$f3", "$f4", "$f5", "$f6", "$f7", "$f8", "$f9", \
++	"$f10", "$f11", "$f12", "$f13", "$f14", "$f15", "$f16", "$f17", "$f18", \
++	"$f19", "memory")
+ 
+ /**
+  * @brief Executed a context switch, during an ongoing interrupt service routine.

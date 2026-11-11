@@ -96,6 +96,9 @@ kernel and posts libultra's events from libdragon's interrupts. In the same
 way, `ai`, `pi`, `si`, `sp` and `vi` take out libultra's audio output, PI
 manager, controller calls, RSP task calls and VI manager. libultra's flash,
 rumble and Controller Pak routines stay, and call ours.
+A thread that waits gives up the CPU by a syscall, and libdragon, with
+`patches/libdragon/0010-switch-frame.patch`, then saves only the registers
+that a call keeps. A thread that an interrupt stops is saved whole, as before.
 The entry is longer than the retail one and main text is shorter, so nothing
 after the entry sits at its retail address. `make play` passes on the variant
 with no pad and with a pad of 0x40.
