@@ -44,8 +44,8 @@ void func_8001ED20(void);
 void func_8001FFA8(void);
 void func_80022178(void);
 float func_80034B40(float x);
-s32 func_800EE640_ovl_a(void);
-s32 func_800EE69C_ovl_a(void);
+s32 func_800EE640(void);
+s32 func_800EE69C(void);
 
 // The game's absolute value, which keeps a zero's sign.
 static inline float absf(float x)
@@ -280,7 +280,7 @@ void ring_tick(void)
         func_8000E670(&x, &y, &z);
         float far = func_80034B40(x * x + z * z);
         if (game_mode == 1) {
-            s32 climb = func_800EE69C_ovl_a();
+            s32 climb = func_800EE69C();
             if (climb == 2) {
                 ring->wall_solid = 1;
             }
@@ -315,7 +315,7 @@ void ring_tick(void)
                 move_to(D_8007A3B0[i].local, 0.0f, (float)(s8)shift, 0.0f);
             }
             ring->shake = ring->shake - 1;
-            s32 climbers = func_800EE640_ovl_a();
+            s32 climbers = func_800EE640();
             D_8009FDE0 = climbers;
             if (climbers & 1) {
                 D_8009FDE0 = 1;

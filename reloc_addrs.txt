@@ -95,8 +95,8 @@ rom:0x1B2B0 reloc:MIPS_LO16 symbol:D_801594D8_ovl_e
 rom:0x1B3B0 reloc:MIPS_HI16 symbol:D_801594D8_ovl_e
 rom:0x1B3B4 reloc:MIPS_LO16 symbol:D_801594D8_ovl_e
 rom:0x1BAFC reloc:MIPS_NONE symbol:none // no rom
-rom:0x1CC6C reloc:MIPS_26 symbol:func_800EE69C_ovl_a
-rom:0x1CEA0 reloc:MIPS_26 symbol:func_800EE640_ovl_a
+rom:0x1CC6C reloc:MIPS_26 symbol:func_800EE69C
+rom:0x1CEA0 reloc:MIPS_26 symbol:func_800EE640
 rom:0x1F7E8 reloc:MIPS_NONE symbol:none // no rom
 rom:0x1F828 reloc:MIPS_HI16 symbol:D_80050878 addend:-0x80000000
 rom:0x1F82C reloc:MIPS_LO16 symbol:D_80050878 addend:-0x80000000
