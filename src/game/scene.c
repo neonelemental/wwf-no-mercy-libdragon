@@ -72,7 +72,7 @@ extern float D_80062B60;
 
 void scene_light_walk(SceneNode *node)
 {
-    float to_light[3], origin[3], normal[3];
+    float to_light[3], origin[3];
     for (; node; node = node->next) {
         SceneObject *object = node->objects;
         if (object && node->colour) {
@@ -82,20 +82,30 @@ void scene_light_walk(SceneNode *node)
             to_light[1] = D_80062B5C - to_light[1];
             to_light[2] = D_80062B60 - to_light[2];
             guNormalize(&to_light[0], &to_light[1], &to_light[2]);
+            float lx = to_light[0], ly = to_light[1], lz = to_light[2];
+            float gain = D_80062B50, base = D_80062B54;
             do {
-                guMtxXFMF(object->node->world, 0, 0, 0, &origin[0], &origin[1], &origin[2]);
+                float (*m)[4] = object->node->world;
+                guMtxXFMF(m, 0, 0, 0, &origin[0], &origin[1], &origin[2]);
+                float ox = origin[0], oy = origin[1], oz = origin[2];
+                float m00 = m[0][0], m01 = m[0][1], m02 = m[0][2];
+                float m10 = m[1][0], m11 = m[1][1], m12 = m[1][2];
+                float m20 = m[2][0], m21 = m[2][1], m22 = m[2][2];
+                float m30 = m[3][0], m31 = m[3][1], m32 = m[3][2];
                 Vertex *vertex = object->vertices;
-                for (u32 i = 0; i < (u32)object->count; i++, vertex++) {
-                    guMtxXFMF(object->node->world, vertex->normal[0], vertex->normal[1], vertex->normal[2],
-                        &normal[0], &normal[1], &normal[2]);
-                    normal[0] -= origin[0];
-                    normal[1] -= origin[1];
-                    normal[2] -= origin[2];
-                    guNormalize(&normal[0], &normal[1], &normal[2]);
-                    float facing = to_light[0] * normal[0] + to_light[1] * normal[1] + to_light[2] * normal[2];
-                    float shade = D_80062B54;
+                for (u32 i = (u32)object->count; i; i--, vertex++) {
+                    // The normal through the matrix as a point, as guMtxXFMF
+                    // does it, less the origin, then to a length of 1, as
+                    // guNormalize does it.
+                    float x = vertex->normal[0], y = vertex->normal[1], z = vertex->normal[2];
+                    float nx = m00 * x + m10 * y + m20 * z + m30 - ox;
+                    float ny = m01 * x + m11 * y + m21 * z + m31 - oy;
+                    float nz = m02 * x + m12 * y + m22 * z + m32 - oz;
+                    float scale = 1.0f / __builtin_sqrtf(nz * nz + (nx * nx + ny * ny));
+                    float facing = lx * (nx * scale) + ly * (ny * scale) + lz * (nz * scale);
+                    float shade = base;
                     if (0 < facing) {
-                        shade = shade + D_80062B50 * facing;
+                        shade = shade + gain * facing;
                         if (255.0 < (double)shade) {
                             shade = 255;
                         }
