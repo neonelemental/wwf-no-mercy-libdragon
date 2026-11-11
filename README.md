@@ -228,6 +228,8 @@ the mean of runs on scripts that wait a few frames more before the match.
 libdragon from the IPL3 of `baserom.z64`; it runs nine threads and prints
 what they count. `tests/kernel` runs libultra's
 thread, queue and event calls on libdragon's kernel and prints its counts.
+Three of its threads hold a pattern in each register across both kinds of
+thread switch, and it prints `calls ok` when every call and register held.
 `tests/mixer` plays the samples of `baserom.z64` on libdragon's mixer with up
 to 24 channels. Run each on a console with a flashcart, or in an accurate
 emulator such as [ares](https://ares-emu.net).

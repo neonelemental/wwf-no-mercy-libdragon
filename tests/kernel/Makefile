@@ -10,7 +10,7 @@ BASEROM = ../../baserom.z64
 BOOT_DIR = ../boot
 KERNEL_DIR = ../../src/dragon/kernel
 KERNEL_OBJS = $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/kernel/%.o,$(wildcard $(KERNEL_DIR)/*.c))
-OBJS = $(BUILD_DIR)/boot.o $(BUILD_DIR)/main.o $(KERNEL_OBJS)
+OBJS = $(BUILD_DIR)/boot.o $(BUILD_DIR)/main.o $(BUILD_DIR)/regs.o $(KERNEL_OBJS)
 CFLAGS += -I../../src/include
 # n64.mk's link flags, with boot.ld in place of n64.ld.
 BOOT_LDFLAGS = $(subst -Tn64.ld,-T$(BOOT_DIR)/boot.ld,$(N64_LDFLAGS))

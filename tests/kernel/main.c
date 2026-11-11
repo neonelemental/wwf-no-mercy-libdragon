@@ -1,6 +1,7 @@
 // Runs libultra's thread, queue and event calls on libdragon's kernel, with
 // the game's threads and queues: 8 created threads at the game's priorities,
-// and main as the idle thread. It prints a count for each path.
+// and main as the idle thread. It prints a count for each path. Three more
+// threads hold patterns in their registers across each kind of switch.
 
 #include <libdragon.h>
 #include "ultra.h"
@@ -15,7 +16,7 @@
 #define TIMER_60_VI ((OSTime)TICKS_PER_SECOND * 1001 / 1000)
 
 enum { T_PI, T_VI, T_SCHED, T_AUDIOSTART, T_GFXSTART, T_AUDIO, T_GFX, T_GAME, CREATED };
-static OSThread threads[CREATED], extra, due;
+static OSThread threads[CREATED], extra, due, held[3];
 static volatile int own[CREATED];
 
 // The created queues of the game, at their sizes.
@@ -29,7 +30,16 @@ static volatile u32 vi_sent, vi_taken, sched_bad, sched_full;
 static volatile u32 fan[3], posts, post_taken, fired;
 static volatile int jam_first = -1, jam_tail_ok;
 static volatile int stage, due_ran;
+static volatile u32 turn, kept[3], regs_bad[3];
+static kcond_t turn_cond;
 static u32 fails;
+
+void __kcond_broadcast_isr(kcond_t *cond);
+
+// regs.S
+u32 regs_spin_a(volatile u32 *turn);
+u32 regs_spin_b(volatile u32 *turn);
+u32 regs_keep(void (*wait)(void));
 
 // The words of the game that osInitialize fills.
 s32 D_800A9980, D_80054AF8;
@@ -156,6 +166,55 @@ static void due_thread(void *arg)
     due_ran = 1;
 }
 
+// Three threads of one priority, below the others. The two that spin never
+// wait: only an interrupt takes the CPU from them, and each holds every
+// register across it. The third holds what a call keeps across a wait for
+// a timer of 7 ms. Its wake in the timer's interrupt switches thread, as a
+// broadcast does for a thread of the same priority, and puts it behind the
+// spinner that is ready: so that interrupt goes on into a thread that an
+// interrupt stopped.
+static void spin_thread(void *arg)
+{
+    int n = (int)(uintptr_t)arg;
+    for (;;) {
+        regs_bad[n] += n ? regs_spin_b(&turn) : regs_spin_a(&turn);
+        kept[n]++;
+    }
+}
+
+static void turn_fire(int overflow)
+{
+    __kcond_broadcast_isr(&turn_cond);
+}
+
+static void turn_wait(void)
+{
+    kcond_wait(&turn_cond, NULL);
+}
+
+static void turn_thread(void *arg)
+{
+    for (;;) {
+        regs_bad[2] += regs_keep(turn_wait);
+        kept[2]++;
+        turn++;
+    }
+}
+
+// From a thread above the three: a spinner that runs lets no thread below it
+// run again. The one that waits goes first, so that it is at its wait when
+// the spinners start.
+static void hold_start(void)
+{
+    kcond_init(&turn_cond);
+    osCreateThread(&held[0], 0, turn_thread, NULL, NULL, 6);
+    osCreateThread(&held[1], 0, spin_thread, (void *)0, NULL, 6);
+    osCreateThread(&held[2], 0, spin_thread, (void *)1, NULL, 6);
+    for (int i = 0; i < 3; i++)
+        osStartThread(&held[i]);
+    new_timer(TIMER_TICKS(7000), TF_CONTINUOUS, turn_fire);
+}
+
 static void wait_vi(void)
 {
     kirq_wait_t w = kirq_begin_wait_vi();
@@ -222,6 +281,7 @@ static void game_thread(void *arg)
 {
     mark(T_GAME);
     calls_once();
+    hold_start();
     for (u32 frame = 0;; frame++) {
         if (jam_first < 0 && osRecvMesg(&jamdoneq, NULL, OS_MESG_NOBLOCK) == 0)
             read_jams();
@@ -240,6 +300,9 @@ static void game_thread(void *arg)
             if (done)
                 printf("jam first %d%s\n", jam_first, jam_tail_ok ? "" : ", tail bad");
             printf("timer %u\n", (unsigned)fired);
+            printf("regs kept %u %u %u\n", (unsigned)kept[0], (unsigned)kept[1], (unsigned)kept[2]);
+            check(!regs_bad[0] && !regs_bad[1] && !regs_bad[2], 16);
+            check(!done || (kept[0] && kept[1] && kept[2]), 17);
             if (fails || owned != CREATED)
                 printf("calls bad %lx\n", (unsigned long)fails);
             else if (done)
