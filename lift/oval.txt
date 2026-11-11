@@ -1,0 +1,5 @@
+func_8012E578 fighter_oval
+func_8012E65C_ovl_e
+func_8012E664_ovl_e
+func_8012E888_ovl_e
+func_8012EA20_ovl_e

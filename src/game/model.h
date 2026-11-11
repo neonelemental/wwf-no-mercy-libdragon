@@ -86,8 +86,11 @@ ULTRA_SIZE(ModelPlace, 0x10);
 typedef struct {
     u8 unknown00[0x08];
     s32 opponent;         // the wrestler that it faces
-    u8 unknown0C[0x76];
-    u16 flags;            // bit 3: the model leans by angle[0] and angle[2]
+    u8 unknown0C[0x58];
+    s32 wall;             // the wall that it is on, with bit 10 of flags
+    u8 unknown68[0x1A];
+    // bit 3: the model leans by angle[0] and angle[2]; bit 10: on a wall
+    u16 flags;
     u8 unknown84[0x06];
     u16 flags8A;          // bit 8: the head turns to the opponent
     u8 unknown8C[0x12];
@@ -109,6 +112,7 @@ typedef struct {
 
 ULTRA_SIZE(Fighter, 0x358);
 ULTRA_AT(Fighter, opponent, 0x08);
+ULTRA_AT(Fighter, wall, 0x64);
 ULTRA_AT(Fighter, flags, 0x82);
 ULTRA_AT(Fighter, flags8A, 0x8A);
 ULTRA_AT(Fighter, slot, 0x9E);
