@@ -1,0 +1,8 @@
+func_8012EB34 bearing_between float
+func_8012ED34 flat_turn int
+func_8012ED0C flat_length float
+func_8012ECA0 point_way
+func_8012E178 turn_units int
+func_8012EC28 way_quarter int
+func_8012EA9C heading_to int
+func_8012EA74 distance_to float
