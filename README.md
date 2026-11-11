@@ -20,12 +20,21 @@ The source variant plays a match in the harness's emulator and boots in ares
 
 Routines move from assembly to C one at a time, each checked call by call
 against its assembly where the check can run it: the game's own in
-`src/game/`, and libultra's maths and `bcopy` in `src/ultra/`. So far these
-are the matrix and vector maths that a match calls most, the passes over the
-nodes and objects of the scene, the model of a wrestler from its animation
-data, the ring with its ropes, the passes over each wrestler's slot, the tick
-of a match, and the draw side: the draw order, the display lists and the loop
-of the graphics thread.
+`src/game/`, and libultra's maths, `bcopy` and write back of the data cache
+in `src/ultra/`. So far these are the matrix and vector maths that a match
+calls most, the passes over the nodes and objects of the scene, the model of
+a wrestler from its animation data, the ring with its ropes, the passes over
+each wrestler's slot, the tick of a match, the draw side, with the draw
+order, the display lists, the end of a task and the loop of the graphics
+thread, and the first of the match logic: the way between two points, where
+a wrestler looks, the oval that it takes on the floor, the push between
+wrestlers and the control of a wrestler by the console.
+
+Four of these routines now do less than their assembly and leave the same
+memory, which the same check shows: the draw order scans the objects once,
+the light pass shades its vertices with no call, a side of the ropes at rest
+writes only what is not there already, and a slot with no wrestler lays no
+shadows in a match.
 
 | part | on libdragon |
 |---|---|

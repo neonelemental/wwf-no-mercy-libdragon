@@ -227,8 +227,6 @@ extern u64 D_800553F0[];
 extern u64 D_8005D8F0[0x400 / 8];
 extern u64 D_8005DCF0[0xC00 / 8];
 
-void osWritebackDCache(void *address, s32 size);
-void osWritebackDCacheAll(void);
 void func_800005E0(SchedTask *task);  // sends a task to the scheduler
 
 void draw_task_end(DrawFrame *frame, Gfx *list, s32 last, s32 kind)

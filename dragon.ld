@@ -53,6 +53,12 @@ SECTIONS
         */game/slot.o(.text .text.*)
         */game/draw.o(.text .text.*)
         */game/tick.o(.text .text.*)
+        */ultra/cache.o(.text .text.*)
+        */game/bearing.o(.text .text.*)
+        */game/look.o(.text .text.*)
+        */game/oval.o(.text .text.*)
+        */game/pair.o(.text .text.*)
+        */game/cpu.o(.text .text.*)
         /* A file that no line names goes here, behind all the others, so
          * that it moves none of them. */
         *(EXCLUDE_FILE(*/split/*) .text .text.*)

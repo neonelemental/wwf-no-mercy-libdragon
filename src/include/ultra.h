@@ -236,6 +236,9 @@ OSTime osGetTime(void);
 u32 osGetCount(void);
 int osSetTimer(OSTimer *t, OSTime countdown, OSTime interval, OSMesgQueue *mq, OSMesg msg);
 
+void osWritebackDCache(void *address, s32 size);
+void osWritebackDCacheAll(void);
+
 #define ULTRA_SIZE(type, size) _Static_assert(sizeof(type) == (size), #type " size")
 #define ULTRA_AT(type, field, at) _Static_assert(offsetof(type, field) == (at), #type "." #field)
 
