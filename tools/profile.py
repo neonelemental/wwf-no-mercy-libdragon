@@ -106,15 +106,13 @@ def with_calls(alone, calls):
     return {routine: cost(routine) for routine in list(alone)}, into
 
 
-def main():
-    args = sys.argv[1:]
-    if len(args) not in (3, 4):
-        sys.exit("usage: python3 tools/profile.py symbol_addrs.txt ELF PROFILE [IDLE]")
-    sized = set(re.findall(r"^(\S+) = \S+ // type:func size:", Path(args[0]).read_text(), re.M))
-    data = Path(args[1]).read_bytes()
+def read(symbol_addrs, elf, profile):
+    """Gives the frames, the instructions that ran, the jumps, and the routine and the name of an address."""
+    sized = set(re.findall(r"^(\S+) = \S+ // type:func size:", Path(symbol_addrs).read_text(), re.M))
+    data = Path(elf).read_bytes()
     code, symbols = read_elf(data)
     ran, jumps = {}, []
-    for line in Path(args[2]).read_text().splitlines():
+    for line in Path(profile).read_text().splitlines():
         kind, *words = line.split()
         if kind == "frames":
             frames = int(words[0])
@@ -147,6 +145,18 @@ def main():
         i = bisect.bisect_right(found, address) - 1
         return (section, found[i]) if i >= 0 else None
 
+    def name(routine):
+        return names[routine[0]][routine[1]][1] if routine else "?"
+
+    return frames, ran, jumps, routine, name
+
+
+def main():
+    args = sys.argv[1:]
+    if len(args) not in (3, 4):
+        sys.exit("usage: python3 tools/profile.py symbol_addrs.txt ELF PROFILE [IDLE]")
+    frames, ran, jumps, routine, name = read(*args[:3])
+
     alone = defaultdict(lambda: [0] * 4)
     for address, (word, runs, lines, loads, backs) in ran.items():
         costs = alone[routine(address)]
@@ -160,9 +170,6 @@ def main():
             calls[caller, callee] += count
             alone.setdefault(callee, [0] * 4)
     whole, into = with_calls(alone, calls)
-
-    def name(routine):
-        return names[routine[0]][routine[1]][1] if routine else "?"
 
     def ms(cycles):
         return cycles / frames / HZ * 1000

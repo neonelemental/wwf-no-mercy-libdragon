@@ -64,8 +64,9 @@ play: harness
 	diff -rq $(PLAY)/played $(PLAY)/save || { echo "the boot changed the save of the match" >&2; exit 1; }
 
 # Plays 25 seconds of a match on the ROM of the variant and writes what each
-# routine costs in a game frame. SCRIPT=tag plays a tag match. The game's idle
-# thread loops in IDLE.
+# routine costs in a game frame, and which routines share lines of the
+# instruction cache. SCRIPT=tag plays a tag match. The game's idle thread
+# loops in IDLE.
 PROFILE := $(OUT)/profile
 SCRIPT  ?= long
 IDLE    := func_800004D0
@@ -74,6 +75,7 @@ profile: harness
 	rm -rf $(PROFILE)
 	$(HARNESS) $(OUT)/nomercy.z64 $(SCRIPTS)/$(SCRIPT).txt $(PROFILE)
 	python3 tools/profile.py symbol_addrs.txt $(OUT)/nomercy.elf $(PROFILE)/profile.txt $(IDLE) > $(PROFILE)/table.txt
+	python3 tools/alias.py symbol_addrs.txt $(OUT)/nomercy.elf $(PROFILE)/profile.txt > $(PROFILE)/shared.txt
 	head -n 24 $(PROFILE)/table.txt
 
 # Splits baserom.z64 into build/split/; splat refuses a dump with another SHA1.

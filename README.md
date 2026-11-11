@@ -71,7 +71,7 @@ one. splat refuses a dump with another SHA1. The dump must be big-endian
 | `make tests` | builds libdragon into `build/libdragon/` and each test ROM into `tests/NAME/build/NAME.z64` |
 | `make harness` | builds the test harness of `tests/tools` into `build/harness/release/harness` |
 | `make play` | plays `build/source/nomercy.z64` in the harness: a boot, a match and a boot on the save of the match. `make play VARIANT=match` plays the retail image |
-| `make profile` | plays 25 seconds of a match on `build/source/nomercy.z64` and writes what each routine costs in a game frame to `build/source/profile/table.txt`. `make profile VARIANT=match` profiles the retail image, and `SCRIPT=tag` a tag match |
+| `make profile` | plays 25 seconds of a match on `build/source/nomercy.z64` and writes what each routine costs in a game frame to `build/source/profile/table.txt`, and the routines that share lines of the instruction cache to `shared.txt` beside it. `make profile VARIANT=match` profiles the retail image, and `SCRIPT=tag` a tag match |
 | `make source CHECK=NAME` | builds `build/check/`, which runs the assembly of the lifted routine NAME beside our C; `make play CHECK=NAME` plays it |
 | `make clean` | removes everything the build wrote |
 
@@ -201,6 +201,11 @@ The model leaves out:
 A routine's cost with what it calls is a share: the cost of a routine goes
 to its callers by their calls of it, which is right when each call costs the
 same.
+
+`tools/alias.py` reads the same profile and writes `shared.txt`: each pair of
+routines with code a multiple of 16 KB apart, where both missed, with the
+lines of the cache that the two share and the misses of each on them. A pair
+that push each other out, time after time, stands at the top.
 
 A run is one match, and no two builds play the same one. The emulator's clock
 counts instructions, so a build with other code takes each interrupt at
