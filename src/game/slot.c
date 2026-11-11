@@ -173,10 +173,35 @@ void slot_shadows(SceneNode *shadows, s32 slot, float ring, float floor)
     }
 }
 
+// The count of the ticks of the match, in overlay ovl_e.
+extern u32 D_80144CAC_ovl_e;
+
+// Whether each shadow of a slot has the pass that slot_shadows gives it.
+static int shadows_passed(SceneNode *shadows, s32 slot)
+{
+    SceneNode *nodes = D_80091CC0[slot];
+    for (int n = 1; n < POSE_JOINTS; n++) {
+        u8 pass = shadows[n].pass;
+        if (D_8004804C[n] == 0 || D_80076260[slot] == 0) {
+            if (!(pass & 0x80)) {
+                return 0;
+            }
+        } else if (pass != nodes[n].pass) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 void slot_tick(s32 slot, float ring, float floor)
 {
     s32 i = (s16)slot;
     SceneNode *shadows = D_80071DA0[i];
+    // A slot with no wrestler gets no new pose in a match, so after the
+    // first tick its shadows hold what the rest of this would write.
+    if (game_mode == 1 && D_80144CAC_ovl_e != 0 && (D_80091CC0[i][1].pass & 0x80) && shadows_passed(shadows, i)) {
+        return;
+    }
     slot_shadows(shadows, i, ring, floor);
     scene_walk(shadows);
     if (game_mode != 3 || !(D_800A8BD4[i][0] & 4)) {
