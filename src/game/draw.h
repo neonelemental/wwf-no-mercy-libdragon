@@ -41,12 +41,10 @@ inline s32 draw_in_view(SceneObject *object)
     return 1;
 }
 
-// Adds the chains of one pass and one kind to the draw order, each with the
-// fixed-point matrices of its objects for this turn. A chain of kind 1 whose
-// head is out of view gets no place.
-void draw_scan(s32 turn, s32 pass, s32 kind);
-// Makes the draw order of a frame: the pass of each chain, the matrix of
-// each object whose node keeps its own product, then the eight scans.
+// Makes the draw order of a frame: the chains of each of eight passes in
+// turn, each with the fixed-point matrices of its objects for this turn. A
+// chain of kind 1 whose head is out of view gets no place. An object whose
+// node keeps its own product gets its matrix too.
 void draw_order(s32 turn);
 // Starts the display list of a task in the buffer of this turn, and gives
 // where its next command goes. With clear, the list first fills the picture.

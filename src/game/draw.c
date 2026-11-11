@@ -9,67 +9,79 @@ extern u8 D_800619B8[900];
 extern SceneObject *D_80061D40[900];
 extern s16 D_800619B4;
 
-void draw_scan(s32 turn, s32 pass, s32 kind)
-{
-    turn = (s16)turn;
-    pass = (u8)pass;
-    kind = (s8)kind;
-    for (u32 i = 0; i < (u32)D_800619B2; i++) {
-        if (D_800619B8[i] != pass) {
-            continue;
-        }
-        SceneObject *object = D_80060BA0[i];
-        if (object->kind != kind) {
-            continue;
-        }
-        D_800619B8[i] = 0xFF;
-        D_80061D40[D_800619B4] = object;
-        if (kind == 1) {
-            if (!draw_in_view(object)) {
-                continue;
-            }
-            for (; object; object = object->next) {
-                guMtxF2L(object->node->product, &object->mtx[turn]);
-            }
-        } else {
-            for (; object; object = object->next) {
-                if (object->node->list) {
-                    object->list = object->node->list;
-                }
-                guMtxF2L(object->node->product, &object->mtx[turn]);
-            }
-        }
-        D_800619B4++;
-    }
-}
-
 // The pass that a chain of kind 1 draws in, by the pass of its node.
 extern u8 D_80043618[];
+
+// The passes of the draw order: each takes the chains of one pass and one kind.
+static const struct {
+    u8 pass, kind;
+} PASSES[8] = {{0, 0}, {0, 1}, {6, 0}, {3, 0}, {4, 1}, {4, 0}, {5, 1}, {5, 0}};
+
+#define NONE 0xFFFF
 
 void draw_order(s32 turn)
 {
     turn = (s16)turn;
-    D_800619B4 = 0;
-    for (u32 i = 0; i < (u32)D_800619B2; i++) {
+    // Which of the passes takes a chain, by its kind and its pass.
+    s8 taker[2][8];
+    for (u32 i = 0; i < 16; i++) {
+        taker[i >> 3][i & 7] = -1;
+    }
+    for (u32 i = 0; i < 8; i++) {
+        taker[PASSES[i].kind][PASSES[i].pass] = i;
+    }
+    // The chains of each pass, in the order of the table: the first, and for
+    // each chain the next. The scan goes from the last chain to the first.
+    u16 first[8], next[900];
+    for (u32 i = 0; i < 8; i++) {
+        first[i] = NONE;
+    }
+    for (u32 i = (u32)D_800619B2; i-- > 0;) {
         SceneObject *object = D_80060BA0[i];
-        u8 pass = object->node->pass;
+        u32 pass = object->node->pass;
         if (pass & 0x80) {
             D_800619B8[i] = 0xFF;
             guMtxF2L(object->node->product, &object->mtx[turn]);
-        } else if (object->kind == 1) {
-            D_800619B8[i] = D_80043618[pass];
-        } else {
+            continue;
+        }
+        u32 kind = object->kind;
+        if (kind == 1) {
+            pass = D_80043618[pass];
+        }
+        s32 by = kind < 2 && pass < 8 ? taker[kind][pass] : -1;
+        if (by < 0) {
             D_800619B8[i] = pass;
+            continue;
+        }
+        D_800619B8[i] = 0xFF;
+        next[i] = first[by];
+        first[by] = i;
+    }
+    // A chain of kind 1 that is out of view leaves its place to the next chain.
+    u32 placed = 0;
+    for (u32 by = 0; by < 8; by++) {
+        for (u32 i = first[by]; i != NONE; i = next[i]) {
+            SceneObject *object = D_80060BA0[i];
+            D_80061D40[placed] = object;
+            if (PASSES[by].kind == 1) {
+                if (!draw_in_view(object)) {
+                    continue;
+                }
+                for (; object; object = object->next) {
+                    guMtxF2L(object->node->product, &object->mtx[turn]);
+                }
+            } else {
+                for (; object; object = object->next) {
+                    if (object->node->list) {
+                        object->list = object->node->list;
+                    }
+                    guMtxF2L(object->node->product, &object->mtx[turn]);
+                }
+            }
+            placed++;
         }
     }
-    draw_scan(turn, 0, 0);
-    draw_scan(turn, 0, 1);
-    draw_scan(turn, 6, 0);
-    draw_scan(turn, 3, 0);
-    draw_scan(turn, 4, 1);
-    draw_scan(turn, 4, 0);
-    draw_scan(turn, 5, 1);
-    draw_scan(turn, 5, 0);
+    D_800619B4 = placed;
 }
 
 // The two buffers that the display lists go to in turn, and whose turn it is.
