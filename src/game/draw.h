@@ -18,9 +18,31 @@ typedef struct {
     u16 unknown6;
 } DrawFrame;
 
+// What the scheduler takes for a task.
+typedef struct SchedTask {
+    struct SchedTask *next;
+    u32 state;
+    u32 flags;    // 0x03: the task needs the RSP and the RDP; 0x60 more for the last task of a frame
+    void *image;  // the picture that the task draws into
+    OSTask task;
+    u8 unknown50[0x28];
+} SchedTask;
+
+// The buffer of a task: its display list, then the task itself.
+typedef struct {
+    Gfx list[1500];
+    SchedTask sched;
+} DrawBuffer;
+
 ULTRA_SIZE(Gfx, 8);
 ULTRA_SIZE(DrawFrame, 8);
 ULTRA_AT(DrawFrame, persp, 0x04);
+ULTRA_SIZE(SchedTask, 0x78);
+ULTRA_AT(SchedTask, flags, 0x08);
+ULTRA_AT(SchedTask, image, 0x0C);
+ULTRA_AT(SchedTask, task, 0x10);
+ULTRA_SIZE(DrawBuffer, 0x2F58);
+ULTRA_AT(DrawBuffer, sched, 0x2EE0);
 
 // Whether the centre of an object is in view: its depth above -150, and its
 // x and y within 1.5 of the middle once divided by that depth.
@@ -53,6 +75,9 @@ Gfx *draw_list_start(DrawFrame *frame, s32 clear);
 // kind: the matrix and the vertices of each object, then the lists. Gives
 // the place of the first chain that it left.
 s32 draw_list_objects(Gfx **list, s32 turn, s32 first);
+// Ends the display list of a task and sends the task to the scheduler. With
+// last, the task is the last of its frame, and kind picks its microcode.
+void draw_task_end(DrawFrame *frame, Gfx *list, s32 last, s32 kind);
 // Writes the display list of one task and sends the task. Gives the place
 // of the first chain that it left.
 s32 draw_task(DrawFrame *frame, s32 turn, s32 first);

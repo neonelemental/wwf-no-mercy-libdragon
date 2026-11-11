@@ -6,6 +6,9 @@ func_800025B0
 func_8000267C
 func_80002BB4 draw_list_start int
 func_800028B4 draw_list_objects int
+func_80002DE4 draw_task_end waits
+func_80002EC0
+func_80002F34
 func_80002FA4 draw_task int waits
 func_80003138 draw_thread waits
 func_80003180

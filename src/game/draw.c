@@ -84,8 +84,8 @@ void draw_order(s32 turn)
     D_800619B4 = placed;
 }
 
-// The two buffers that the display lists go to in turn, and whose turn it is.
-extern Gfx *D_8005D8E0[2];
+// The two buffers that the tasks go to in turn, and whose turn it is.
+extern DrawBuffer *D_8005D8E0[2];
 extern s16 D_80043610;
 // What segment 1 of a display list is.
 extern void *D_800BD94C;
@@ -104,7 +104,7 @@ static inline u32 physical(void *address)
 
 Gfx *draw_list_start(DrawFrame *frame, s32 clear)
 {
-    Gfx *g = D_8005D8E0[D_80043610];
+    Gfx *g = D_8005D8E0[D_80043610]->list;
     g[0].w0 = 0xDB060000;
     g[0].w1 = 0;
     g[1].w0 = 0xDB060004;
@@ -215,9 +215,62 @@ s32 draw_list_objects(Gfx **list, s32 turn, s32 first)
     return (s16)i;
 }
 
-// Ends the display list of a task and sends the task. With last, it is the
-// last of its frame, and kind picks its microcode.
-void func_80002DE4(DrawFrame *frame, Gfx *list, s32 last, s32 kind);
+// The code that starts a task on the RSP, and where it ends.
+extern u64 D_80040380[];
+extern u64 D_80040450[];
+// The microcode of a task with its data: of kind 0, and of any other kind.
+extern u64 D_800410B0[];
+extern u64 D_80054FD0[];
+extern u64 D_80042450[];
+extern u64 D_800553F0[];
+// The stack of the microcode, and where it keeps a task that yields.
+extern u64 D_8005D8F0[0x400 / 8];
+extern u64 D_8005DCF0[0xC00 / 8];
+
+void func_80034440(void *address, s32 size);  // libultra's write back of the data cache
+void func_800005E0(SchedTask *task);          // sends a task to the scheduler
+
+void draw_task_end(DrawFrame *frame, Gfx *list, s32 last, s32 kind)
+{
+    void *image = frame->image;
+    DrawBuffer *buffer = D_8005D8E0[D_80043610];
+    list[0].w0 = 0xE9000000;
+    list[0].w1 = 0;
+    list[1].w0 = 0xDF000000;
+    list[1].w1 = 0;
+    list += 2;
+    SchedTask *sched = &buffer->sched;
+    OSTask_t *task = &sched->task.t;
+    task->type = 1;
+    task->flags = 2;
+    task->ucode_boot = D_80040380;
+    task->ucode_boot_size = (u32)D_80040450 - (u32)D_80040380;
+    if ((s16)kind == 0) {
+        task->ucode = D_800410B0;
+        task->ucode_data = D_80054FD0;
+    } else {
+        task->ucode = D_80042450;
+        task->ucode_data = D_800553F0;
+    }
+    task->ucode_size = 0x1000;
+    task->ucode_data_size = 0x800;
+    task->dram_stack = D_8005D8F0;
+    task->dram_stack_size = sizeof D_8005D8F0;
+    task->output_buff = NULL;
+    task->output_buff_size = NULL;
+    task->data_ptr = (u64 *)D_8005D8E0[D_80043610];
+    task->data_size = (s16)(list - D_8005D8E0[D_80043610]->list) * sizeof(Gfx);
+    task->yield_data_ptr = D_8005DCF0;
+    task->yield_data_size = sizeof D_8005DCF0;
+    sched->next = NULL;
+    sched->flags = (s16)last ? 0x63 : 0x03;
+    sched->image = image;
+    // The address of the pointer, not of the buffer: the size alone makes
+    // this a write back of the whole data cache.
+    func_80034440(&D_8005D8E0[D_80043610], sizeof(DrawBuffer));
+    func_800005E0(sched);
+    D_80043610 = (s16)(D_80043610 + 1) % 2;
+}
 
 s32 draw_task(DrawFrame *frame, s32 turn, s32 first)
 {
@@ -225,7 +278,7 @@ s32 draw_task(DrawFrame *frame, s32 turn, s32 first)
     Gfx *list = draw_list_start(frame, first == 0);
     s32 kind = D_80061D40[first]->kind;
     s32 next = (s16)draw_list_objects(&list, (s16)turn, first);
-    func_80002DE4(frame, list, next >= D_800619B4, (s16)kind);
+    draw_task_end(frame, list, next >= D_800619B4, (s16)kind);
     return next;
 }
 
