@@ -60,8 +60,61 @@ static inline void move_to(Matrix m, float x, float y, float z)
     m[3][2] = z;
 }
 
+// Whether no rope of a side bends.
+static int at_rest(int side)
+{
+    for (int i = 0; i < ROPE_ROPES; i++) {
+        Rope *rope = &D_80084410[side][i];
+        if (rope->up != 0.0f || rope->out != 0.0f) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// Writes a side at rest. Each of its words is then the same at each call,
+// so only a word that holds something else is written.
+static void rope_side_at_rest(Vertex *vertex, int side)
+{
+    s16 y[ROPE_ROPES][4], z[4];
+    for (int corner = 0; corner < 4; corner++) {
+        for (int i = 0; i < ROPE_ROPES; i++) {
+            y[i][corner] = D_80052888[i] + D_80052848[corner];
+        }
+        z[corner] = D_8005284C[corner];
+    }
+    RopeSide *drawn = &D_80084370[side];
+    for (int point = 0; point < ROPE_POINTS; point++) {
+        for (int i = 0; i < ROPE_ROPES; i++) {
+            for (int corner = 0; corner < 4; corner++, vertex++) {
+                if (vertex->y != y[i][corner]) {
+                    vertex->y = y[i][corner];
+                }
+                if (vertex->z != z[corner]) {
+                    vertex->z = z[corner];
+                }
+            }
+        }
+        if (drawn->out[point] != 0) {
+            drawn->out[point] = 0;
+        }
+    }
+    for (int i = 0; i < ROPE_PIECES; i++) {
+        float *centre = &drawn->piece[i]->centre[2];
+        u32 bits;
+        __builtin_memcpy(&bits, centre, sizeof bits);
+        if (bits != 0) {
+            *centre = 0.0f;
+        }
+    }
+}
+
 void rope_side(Vertex *vertex, int side)
 {
+    if (at_rest(side)) {
+        rope_side_at_rest(vertex, side);
+        return;
+    }
     for (int point = 0; point < ROPE_POINTS; point++) {
         float x = (float)(point * 74 - 224);
         float out = 0;

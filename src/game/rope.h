@@ -80,6 +80,7 @@ void arena_tick(void);
 // Swings each rope and writes each side.
 void rope_swing(void);
 // Writes the vertices of the 3 ropes of a side, and the centre of each piece.
+// For a side at rest it writes only the words that hold something else.
 void rope_side(Vertex *vertex, int side);
 // Bounces the ring, sorts and fades what stands about it, and walks its nodes.
 void ring_tick(void);
