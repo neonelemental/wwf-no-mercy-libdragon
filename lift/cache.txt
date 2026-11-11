@@ -1,0 +1,2 @@
+func_80034440 osWritebackDCache
+func_800344C0 osWritebackDCacheAll

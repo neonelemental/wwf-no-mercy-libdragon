@@ -227,8 +227,9 @@ extern u64 D_800553F0[];
 extern u64 D_8005D8F0[0x400 / 8];
 extern u64 D_8005DCF0[0xC00 / 8];
 
-void func_80034440(void *address, s32 size);  // libultra's write back of the data cache
-void func_800005E0(SchedTask *task);          // sends a task to the scheduler
+void osWritebackDCache(void *address, s32 size);
+void osWritebackDCacheAll(void);
+void func_800005E0(SchedTask *task);  // sends a task to the scheduler
 
 void draw_task_end(DrawFrame *frame, Gfx *list, s32 last, s32 kind)
 {
@@ -267,7 +268,7 @@ void draw_task_end(DrawFrame *frame, Gfx *list, s32 last, s32 kind)
     sched->image = image;
     // The address of the pointer, not of the buffer: the size alone makes
     // this a write back of the whole data cache.
-    func_80034440(&D_8005D8E0[D_80043610], sizeof(DrawBuffer));
+    osWritebackDCache(&D_8005D8E0[D_80043610], sizeof(DrawBuffer));
     func_800005E0(sched);
     D_80043610 = (s16)(D_80043610 + 1) % 2;
 }
@@ -298,7 +299,6 @@ extern s16 D_80043612;
 
 void func_8000071C(s32 which);
 void func_800036DC(s32 on);
-void func_800344C0(void);
 void osViSetYScale(f32 factor);
 void osViBlack(u8 active);
 
@@ -346,7 +346,7 @@ void draw_thread(void *arg)
         if (!frame) {
             continue;
         }
-        func_800344C0();
+        osWritebackDCacheAll();
         retraces = 0;
         s32 next = 0;
         do {
